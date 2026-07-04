@@ -456,7 +456,10 @@
       padding: 10px 12px;
     }
 
-    .td-team.is-active { border-color: var(--primary); }
+    .td-team.is-active {
+      border-color: var(--primary);
+      background: oklch(0.17 0.04 150);
+    }
 
     .td-team-head {
       display: flex;
@@ -506,6 +509,27 @@
       border-radius: 12px;
       padding: 12px 8px;
       gap: 7px;
+    }
+
+    .td-live-field {
+      display: grid;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .td-live-field-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .td-live-field .td-public-field {
+      margin-top: 0;
     }
 
     .td-public-field::before {
@@ -2972,6 +2996,7 @@
     function renderTdBoard(r) {
       const teams = r.teams || {}, d = r.draft;
       const order = d.order || [];
+      const activeId = tdActive(d);
       const mode = state.tdCard;
       el.tdBoardHint.textContent = mode
         ? (mode === "bloqueio" ? "Toque num jogador SEU pra proteger"
@@ -2981,7 +3006,7 @@
       el.tdBoard.innerHTML = order.map(id => {
         const t = teams[id] || {};
         const isMe = id === clientId;
-        const active = tdActive(d) === id;
+        const active = activeId === id;
         const entries = tdTeamEntries(t);
         entries.sort((a, b) => (a.p.seq || 0) - (b.p.seq || 0));
         const hiddenSeq = tdHiddenSeq(entries, isMe, d);
@@ -2998,12 +3023,21 @@
         return `<div class="td-team ${active ? "is-active" : ""}">
           <div class="td-team-head"><strong>${t.apelido || "?"}${isMe ? " (voce)" : ""}</strong><span>${t.count || 0}/${TROSTER}</span></div>
           <div class="td-chips">${chips || "<span class='td-chip empty'>—</span>"}</div>
-          ${active ? renderTdPublicField(t, d, isMe) : ""}
         </div>`;
-      }).join("");
+      }).join("") + renderTdActiveField(teams[activeId] || {}, d, activeId);
       el.tdBoard.querySelectorAll('[data-card="bloq"]').forEach(b => b.onclick = () => { state.tdCard = null; tdUseBloqueio(b.dataset.pid); });
       el.tdBoard.querySelectorAll('[data-card="give"]').forEach(b => b.onclick = () => { state.tdCard = { step: "take", giveGroup: b.dataset.group, giveSlot: b.dataset.slot }; showToast("Agora toque no jogador do adversario que quer roubar."); render(); });
       el.tdBoard.querySelectorAll('[data-card="take"]').forEach(b => b.onclick = () => { const m = state.tdCard; state.tdCard = null; tdUseTroca(m.giveSlot, m.giveGroup, b.dataset.team, b.dataset.pid); });
+    }
+
+    function renderTdActiveField(team, draft, teamId) {
+      if (!teamId) return "";
+      const isMe = teamId === clientId;
+      const name = escapeHtml((team && (team.apelido || team.name)) || "Jogador");
+      return `<div class="td-live-field">
+        <div class="td-live-field-head"><span>Campo de ${name}${isMe ? " (voce)" : ""}</span><span>em escolha</span></div>
+        ${renderTdPublicField(team, draft, isMe)}
+      </div>`;
     }
 
     function tdTeamEntries(team) {
@@ -3017,6 +3051,9 @@
 
     function tdHiddenSeq(entries, isMe, draft) {
       if (isMe || draft.done || !entries.length) return null;
+      const count = entries.length;
+      const turnFinished = count === TROSTER || count % TPERTURN === 0;
+      if (!turnFinished) return null;
       return entries.reduce((m, e) => Math.max(m, e.p.seq || 0), 0);
     }
 
