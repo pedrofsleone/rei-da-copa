@@ -339,8 +339,8 @@ DEPLOY (Fase H CONCLUIDA): repo GitHub **https://github.com/pedrofsleone/rei-da-
 
 Proximos passos (roadmap do plano de torneios):
 1. ~~Fase H — GitHub Pages~~ FEITO (ver acima).
-2. **Fase B — Lobby de torneio:** RC_NET pra N jogadores; config do criador (formato/tamanho/preenchimento/experiencia); lobby lista todos; host inicia.
-3. **Fase C — Draft de todos:** cada humano monta o XI e envia; host auto-drafta os CPUs.
+2. ~~Fase B — Lobby de torneio~~ FEITO E VALIDADO. RC_NET generalizado pra N jogadores: `createRoom` grava `config` padrao `{format:"grupos", size:16, fill:"cpu", experience:"assistir", groupSize:4, advance:2}`; `joinRoom` limita ao `config.size` (nao mais 2); novo `setConfig(code, patch)` faz merge em `/rooms/{cod}/config`. Lobby (`renderMultiLobby`): painel `lobbyConfigPanel` editavel so pro host (segmented controls Formato / Times 8-16-32 / Vagas cpu-humanos / Experiencia assistir-interativo; no Personalizado aparecem Tamanho do grupo e Quantos passam) e somente-leitura pros convidados; lista de jogadores com contador `X/size` e marca de anfitriao; botao Comecar (host) habilita quando todos prontos e (fill cpu: >=1 / humanos: == size). Config sincroniza ao vivo pelo RTDB. `startMatch` ainda so mostra toast "Montar os times (Fase C)". Validado no preview: controles renderizam, mudam e sincronizam (inclusive Personalizado), sem overflow, sem erro de console.
+3. **Fase C — Draft de todos (PROXIMA):** ao Comecar, cada humano monta o XI (reusa o draft solo) e envia resumo pra `/rooms/{cod}/teams/{teamId}`; host auto-drafta os CPUs pra completar `size`; espera todos. status da sala vai pra "drafting".
 4. **Fase D — Torneio modo ASSISTIR:** host monta grupos/bracket e resolve placares; tabela/chaveamento ao vivo; playback dos seus jogos; campeao. (1o torneio jogavel ponta a ponta.)
 5. **Fase E — modo INTERATIVO;** **Fase F — Personalizado + regras definitivas do Firebase (expira ~2026-08-02) + polimento.**
 6. PWA depois.
