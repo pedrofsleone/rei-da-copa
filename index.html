@@ -414,6 +414,86 @@
       gap: 8px;
     }
 
+    .td-timer {
+      font-weight: 950;
+      color: var(--accent);
+    }
+
+    .td-cards {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .td-card {
+      flex: 1;
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .td-card:disabled { color: var(--faint); }
+
+    .td-draw-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .td-board { display: grid; gap: 8px; }
+
+    .td-team {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-2);
+      padding: 10px 12px;
+    }
+
+    .td-team.is-active { border-color: var(--primary); }
+
+    .td-team-head {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 850;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .td-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .td-chip {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 6px;
+      border-radius: 6px;
+      background: oklch(0.22 0.03 235);
+      color: var(--ink);
+    }
+
+    .td-chip.empty { color: var(--faint); }
+
+    .td-chip.is-prot { border: 1px solid var(--accent); }
+
+    .td-chip.is-target {
+      border: 1px solid var(--primary);
+      background: oklch(0.22 0.055 150);
+      cursor: pointer;
+    }
+
+    .td-card.is-on {
+      border-color: var(--primary);
+      background: oklch(0.20 0.055 150);
+    }
+
+    .slot.is-protected { border-color: var(--accent); }
+
     .lobby-player {
       display: flex;
       align-items: center;
@@ -1308,6 +1388,40 @@
       </section>
     </section>
 
+    <section class="view" id="tourneyDraftView" aria-label="Draft do torneio">
+      <button class="multi-back" id="tdLeaveBtn" type="button">← Sair do torneio</button>
+      <section class="panel panel-pad">
+        <div class="section-head">
+          <h1 class="section-title" id="tdTurnTitle">Draft</h1>
+          <span class="hint td-timer" id="tdTimer">--</span>
+        </div>
+        <div class="sync-line" id="tdTurnHint"></div>
+      </section>
+      <section class="panel panel-pad field-wrap">
+        <div class="section-head">
+          <h2 class="section-title">Seu time</h2>
+          <span class="hint" id="tdFieldHint"></span>
+        </div>
+        <div class="field" id="tdField"></div>
+        <div class="td-cards" id="tdCards"></div>
+      </section>
+      <section class="panel panel-pad" id="tdPickPanel">
+        <div class="section-head">
+          <h2 class="section-title">Escolher</h2>
+          <span class="hint" id="tdPickHint">Role e pegue 3</span>
+        </div>
+        <div class="draw-card" id="tdDrawCard"></div>
+        <div class="player-list" id="tdPlayerList"></div>
+      </section>
+      <section class="panel panel-pad">
+        <div class="section-head">
+          <h2 class="section-title">Draft ao vivo</h2>
+          <span class="hint" id="tdBoardHint"></span>
+        </div>
+        <div class="td-board" id="tdBoard"></div>
+      </section>
+    </section>
+
     <section class="view" id="tourneyWaitView" aria-label="Torneio">
       <button class="multi-back" id="tourneyLeaveBtn" type="button">← Sair do torneio</button>
       <section class="panel panel-pad">
@@ -1664,7 +1778,9 @@
       nickname: "",
       returnScreen: "draft",
       net: null,
-      tourney: null
+      tourney: null,
+      tdCard: null,      // modo de carta ativo: 'bloqueio' | {step:'give'} | {step:'take',giveGroup,giveSlot}
+      trocaSeen: 0
     };
 
     const el = {
@@ -1727,6 +1843,20 @@
       readyBtn: document.getElementById("readyBtn"),
       startBtn: document.getElementById("startBtn"),
       lobbyStatus: document.getElementById("lobbyStatus"),
+      tourneyDraftView: document.getElementById("tourneyDraftView"),
+      tdLeaveBtn: document.getElementById("tdLeaveBtn"),
+      tdTurnTitle: document.getElementById("tdTurnTitle"),
+      tdTimer: document.getElementById("tdTimer"),
+      tdTurnHint: document.getElementById("tdTurnHint"),
+      tdFieldHint: document.getElementById("tdFieldHint"),
+      tdField: document.getElementById("tdField"),
+      tdCards: document.getElementById("tdCards"),
+      tdPickPanel: document.getElementById("tdPickPanel"),
+      tdPickHint: document.getElementById("tdPickHint"),
+      tdDrawCard: document.getElementById("tdDrawCard"),
+      tdPlayerList: document.getElementById("tdPlayerList"),
+      tdBoardHint: document.getElementById("tdBoardHint"),
+      tdBoard: document.getElementById("tdBoard"),
       tourneyWaitView: document.getElementById("tourneyWaitView"),
       tourneyLeaveBtn: document.getElementById("tourneyLeaveBtn"),
       tourneyWaitHint: document.getElementById("tourneyWaitHint"),
@@ -1792,6 +1922,7 @@
     el.startBtn.addEventListener("click", startTournament);
     el.copyCodeBtn.addEventListener("click", copyRoomCode);
     el.tourneyLeaveBtn.addEventListener("click", leaveTournament);
+    el.tdLeaveBtn.addEventListener("click", leaveTournament);
 
     function openMulti() {
       stopAuto();
@@ -1853,23 +1984,32 @@
         return;
       }
       if (st === "drafting") {
-        const myTeam = room.teams && room.teams[clientId];
-        const amHuman = room.players && room.players[clientId];
-        if ((myTeam && myTeam.submitted) || !amHuman) {
-          state.tourney = state.tourney || { code: state.net.code };
-          state.screen = "tourneyWait";
-          render();
-        } else if (!state.tourney) {
-          enterTournamentDraft();   // entra no draft (reseta o elenco) so uma vez
-        } else {
-          render();                 // ja draftando: so re-renderiza
-        }
+        state.tourney = state.tourney || { code: state.net.code };
+        state.screen = "tourneyDraft";
+        surfaceTrocaResult(room);
+        if (isRoomHost(room)) { startDraftTimer(); hostDraftTick(room); }
+        render();
         return;
       }
       // running / done -> Fase D (por enquanto, tela de espera)
+      stopDraftTimer();
       state.tourney = state.tourney || { code: state.net.code };
       state.screen = "tourneyWait";
       render();
+    }
+
+    function isRoomHost(room) { return !!room && room.host === clientId; }
+
+    // avisa o ladrao/alvo do resultado da ultima troca (uma vez)
+    function surfaceTrocaResult(room) {
+      const ltr = room.draft && room.draft.lastTrocaResult;
+      if (!ltr || !ltr.at || ltr.at === state.trocaSeen) return;
+      state.trocaSeen = ltr.at;
+      if (ltr.by === clientId) {
+        showToast(ltr.blocked ? "Bloqueado! Voce perdeu a carta de Troca." : `Roubo certeiro: ${ltr.took}!`);
+      } else if (ltr.from === clientId) {
+        showToast(ltr.blocked ? "Seu bloqueio funcionou — roubo barrado!" : "Te roubaram um jogador!");
+      }
     }
     // chamado pelo modulo de rede quando o Firebase termina de carregar
     window.renderIfMulti = () => {
@@ -1901,15 +2041,20 @@
     }
 
     // Monta um time de CPU. Cada CPU tem um "nivel" alvo (tier) pra variar a forca entre os times.
-    function autoBuildTeam(name) {
+    // `taken` = jogadores ja usados (pool compartilhado); evita repetir, com fallback se acabar.
+    function autoBuildTeam(name, taken) {
+      taken = taken || {};
       const form = formations["4-3-3"];
-      const pool = squads.flatMap(s => s.players.map(p => ({ id: p.id, short: p.short, name: p.name, positions: p.positions, rating: p.rating })));
+      const all = squads.flatMap(s => s.players.map(p => ({ id: p.id, short: p.short, name: p.name, positions: p.positions, rating: p.rating })));
+      const pool = all.filter(p => !taken[p.id]);
       const tier = 76 + Math.floor(Math.random() * 17); // 76..92
       const used = new Set();
       const lineup = {};
       form.slots.forEach(slot => {
         let fit = pool.filter(p => !used.has(p.id) && p.positions.includes(slot.pos));
         if (!fit.length) fit = pool.filter(p => !used.has(p.id));
+        if (!fit.length) fit = all.filter(p => !used.has(p.id) && p.positions.includes(slot.pos)); // fallback: reusa
+        if (!fit.length) fit = all.filter(p => !used.has(p.id));
         // prioriza quem esta mais perto do nivel-alvo, com um jitter aleatorio
         fit.sort((a, b) => (Math.abs(a.rating - tier) + Math.random() * 4) - (Math.abs(b.rating - tier) + Math.random() * 4));
         const pick = fit[0];
@@ -1919,7 +2064,7 @@
       const overall = Math.round(vals.reduce((s, p) => s + p.rating, 0) / Math.max(1, vals.length));
       const captain = [...vals].sort((a, b) => b.rating - a.rating)[0];
       return {
-        name, human: null, submitted: true,
+        name, human: null, submitted: true, count: vals.length,
         overall,
         attack: avgRatingByPos(lineup, ["PE", "CA", "PD", "MEI"]),
         defense: avgRatingByPos(lineup, ["GOL", "LD", "ZAG", "LE", "VOL"]),
@@ -1928,7 +2073,7 @@
       };
     }
 
-    // Host inicia o torneio: cria os slots de times (humanos vazios + CPUs prontos) e vai pro draft.
+    // Host inicia o torneio: cria so os slots humanos + estado do draft por turnos (snake). CPUs vem no fim.
     function startTournament() {
       const net = state.net;
       if (!net || !net.room) return;
@@ -1939,56 +2084,343 @@
       const allReady = ids.length >= 1 && ids.every(id => players[id].ready);
       if (!allReady) { showToast("Todos precisam ficar prontos."); return; }
       if (c.fill === "humanos" && ids.length < teams) { showToast(`Faltam ${teams - ids.length} jogadores.`); return; }
-      const teamObj = {};
-      ids.forEach(id => { teamObj[id] = { name: (players[id].apelido || "Jogador") + " FC", apelido: players[id].apelido || "Jogador", human: id, submitted: false }; });
-      const cpuNeeded = c.fill === "cpu" ? Math.max(0, teams - ids.length) : 0;
-      const shuffledNames = [...CPU_NAMES].sort(() => Math.random() - 0.5);
-      for (let i = 0; i < cpuNeeded; i++) {
-        teamObj["cpu" + i] = autoBuildTeam(shuffledNames[i % shuffledNames.length] || ("CPU " + (i + 1)));
-      }
-      window.RC_NET.startTournament(net.code, teamObj);
-    }
-
-    function enterTournamentDraft() {
-      state.tourney = { code: state.net.code };
-      stopAuto();
-      state.draw = null;
-      state.selected = null;
-      state.rerolls = 3;
-      state.formation = "4-3-3";
-      slots = formations["4-3-3"].slots;
-      state.lineup = Object.fromEntries(slots.map(slot => [slot.id, null]));
-      state.bench = Object.fromEntries(benchSlots.map(slot => [slot.id, null]));
-      state.captainId = null;
-      state.penaltyOrder = [];
-      state.screen = "draft";
-      render();
-    }
-
-    function submitTournamentTeam() {
-      if (!state.tourney) return;
-      if (!isRosterComplete()) { showToast("Complete 11 titulares e 2 reservas."); return; }
-      if (!state.captainId) state.captainId = strongestPlayers(filledPlayers(), 1)[0]?.id || null;
-      const lineup = {};
-      slots.forEach(slot => {
-        const p = state.lineup[slot.id];
-        if (p) lineup[slot.id] = { id: p.id, short: p.short, name: p.name, natural: p.natural || slot.pos, rating: p.rating };
+      const order = [...ids].sort(() => Math.random() - 0.5); // ordem snake embaralhada
+      const updates = {};
+      order.forEach(id => {
+        updates["teams/" + id] = {
+          name: (players[id].apelido || "Jogador") + " FC",
+          apelido: players[id].apelido || "Jogador",
+          human: id, formation: "4-3-3", count: 0,
+          trocaUsed: false, bloqueioUsed: false, protectedId: null
+        };
       });
-      const summary = {
-        name: state.teamName, apelido: state.nickname, human: clientId, submitted: true,
-        overall: teamOverall(),
-        attack: lineAverage(["PE", "CA", "PD", "MEI"]),
-        defense: lineAverage(["GOL", "LD", "ZAG", "LE", "VOL"]),
-        captainId: state.captainId,
-        lineup
+      updates["draft"] = {
+        order, round: 0, turnIndex: 0, pickInTurn: 0, seq: 0,
+        deadline: Date.now() + c.turnTime * 1000, taken: {}, pendingTroca: null, done: false
       };
-      window.RC_NET.setTeam(state.tourney.code, clientId, summary);
-      showToast("Time enviado!");
-      state.screen = "tourneyWait";
+      updates["status"] = "drafting";
+      window.RC_NET.startTournament(net.code, updates);
+    }
+
+    // ===== Draft por turnos ao vivo =====
+    const TROSTER = 13, TPERTURN = 3;
+    const TLASTROUND = Math.ceil(TROSTER / TPERTURN) - 1; // 4
+    let draftTimer = null;
+
+    function picksThisTurn(round) { return Math.max(0, Math.min(TPERTURN, TROSTER - round * TPERTURN)); }
+    function tdActive(d) {
+      const order = d.order || []; const n = order.length; if (!n) return null;
+      const idx = (d.round % 2 === 0) ? d.turnIndex : (n - 1 - d.turnIndex);
+      return order[idx];
+    }
+    function tdRoom() { return state.net && state.net.room; }
+    function tdTeams() { const r = tdRoom(); return (r && r.teams) || {}; }
+    function tdMyTeam() { return tdTeams()[clientId] || {}; }
+    function tdTaken() { const r = tdRoom(); return (r && r.draft && r.draft.taken) || {}; }
+    function tdIsMyTurn() { const r = tdRoom(); return !!(r && r.draft && !r.draft.done && tdActive(r.draft) === clientId); }
+
+    function tdOpenSlots(player, team) {
+      const form = formations[team.formation || "4-3-3"];
+      const lineup = team.lineup || {}, bench = team.bench || {};
+      const starters = form.slots.filter(s => !lineup[s.id] && player.positions.includes(s.pos));
+      const benchOpen = benchSlots.filter(b => !bench[b.id]);
+      return { starters, benchOpen };
+    }
+    function tdAvailable(player, team, taken) {
+      if (taken[player.id]) return false;
+      const o = tdOpenSlots(player, team);
+      return o.starters.length > 0 || o.benchOpen.length > 0;
+    }
+
+    function tdRoll() { if (!tdIsMyTurn()) return; state.draw = rollSquad(); state.rerolls = 3; render(); }
+    function tdReroll() { if (!tdIsMyTurn() || !state.draw || state.rerolls <= 0) return; state.rerolls--; state.draw = rollSquad({ notCountry: state.draw.country }); render(); }
+
+    function tdPick(playerId) {
+      const r = tdRoom(); if (!r || !r.draft) return;
+      if (!tdIsMyTurn()) { showToast("Nao e sua vez."); return; }
+      const player = state.draw && state.draw.players.find(p => p.id === playerId);
+      if (!player) return;
+      const team = tdMyTeam();
+      if (tdTaken()[player.id]) { showToast("Ja foi escolhido."); return; }
+      const o = tdOpenSlots(player, team);
+      let group, slotId, natural;
+      if (o.starters.length) { group = "lineup"; slotId = o.starters[0].id; natural = o.starters[0].pos; }
+      else if (o.benchOpen.length) { group = "bench"; slotId = o.benchOpen[0].id; natural = player.positions[0]; }
+      else { showToast("Sem vaga pra esse jogador."); return; }
+      const seq = (r.draft.seq || 0) + 1;
+      const obj = { id: player.id, short: player.short, name: player.name, natural, rating: player.rating, seq };
+      const u = {};
+      u["teams/" + clientId + "/" + group + "/" + slotId] = obj;
+      u["teams/" + clientId + "/count"] = (team.count || 0) + 1;
+      u["draft/taken/" + player.id] = clientId;
+      u["draft/seq"] = seq;
+      u["draft/pickInTurn"] = (r.draft.pickInTurn || 0) + 1;
+      window.RC_NET.patch(state.net.code, u);
+      state.draw = null;
+      showToast(`${player.short} pra voce!`);
       render();
+    }
+
+    // ---- autoridade do host ----
+    function hostDraftTick(room) {
+      const d = room.draft; if (!d || d.done) return;
+      if (d.pendingTroca) { hostResolveTroca(room); return; } // resolve troca antes de avancar
+      const teams = room.teams || {};
+      const active = tdActive(d);
+      const team = teams[active] || {};
+      const need = picksThisTurn(d.round);
+      if ((d.pickInTurn || 0) >= need || (team.count || 0) >= TROSTER) hostAdvance(room);
+    }
+
+    function hostAdvance(room) {
+      const d = room.draft; const n = (d.order || []).length;
+      let round = d.round, turnIndex = d.turnIndex + 1;
+      if (turnIndex >= n) { turnIndex = 0; round += 1; }
+      if (round > TLASTROUND) { finishDraft(room); return; }
+      const c = cfgOr(room.config);
+      window.RC_NET.setDraft(state.net.code, { round, turnIndex, pickInTurn: 0, deadline: Date.now() + c.turnTime * 1000 });
+    }
+
+    function startDraftTimer() { if (!draftTimer) draftTimer = window.setInterval(draftTick, 1000); }
+    function stopDraftTimer() { if (draftTimer) { window.clearInterval(draftTimer); draftTimer = null; } }
+    function draftTick() {
+      if (state.screen !== "tourneyDraft") { stopDraftTimer(); return; }
+      const r = tdRoom(); if (!r || !r.draft || r.draft.done) return;
+      const left = Math.max(0, Math.ceil((r.draft.deadline - Date.now()) / 1000));
+      if (el.tdTimer) el.tdTimer.textContent = left + "s";
+      if (isRoomHost(r) && Date.now() > r.draft.deadline + 800) hostAutoCompleteTurn(r);
+    }
+
+    // completa (auto) a vez do jogador ativo e avanca — cobre timeout e desconexao
+    function hostAutoCompleteTurn(room) {
+      const d = room.draft; const active = tdActive(d);
+      const teams = room.teams || {};
+      const team = JSON.parse(JSON.stringify(teams[active] || {}));
+      const takenLocal = { ...(d.taken || {}) };
+      const toPick = picksThisTurn(d.round) - (d.pickInTurn || 0);
+      const pool = squads.flatMap(s => s.players.map(p => ({ id: p.id, short: p.short, name: p.name, positions: p.positions, rating: p.rating })))
+        .sort((a, b) => b.rating - a.rating);
+      let seq = d.seq || 0, cnt = team.count || 0;
+      const u = {};
+      for (let i = 0; i < toPick; i++) {
+        let done = false;
+        for (const p of pool) {
+          if (takenLocal[p.id]) continue;
+          const o = tdOpenSlots(p, team);
+          let group, slotId, natural;
+          if (o.starters.length) { group = "lineup"; slotId = o.starters[0].id; natural = o.starters[0].pos; }
+          else if (o.benchOpen.length) { group = "bench"; slotId = o.benchOpen[0].id; natural = p.positions[0]; }
+          else continue;
+          seq++; cnt++;
+          const obj = { id: p.id, short: p.short, name: p.name, natural, rating: p.rating, seq };
+          team[group] = team[group] || {}; team[group][slotId] = obj;
+          takenLocal[p.id] = active;
+          u["teams/" + active + "/" + group + "/" + slotId] = obj;
+          u["draft/taken/" + p.id] = active;
+          done = true; break;
+        }
+        if (!done) break;
+      }
+      u["teams/" + active + "/count"] = cnt;
+      u["draft/seq"] = seq;
+      const n = (d.order || []).length;
+      let round = d.round, turnIndex = d.turnIndex + 1;
+      if (turnIndex >= n) { turnIndex = 0; round += 1; }
+      const c = cfgOr(room.config);
+      if (round > TLASTROUND) {
+        window.RC_NET.patch(state.net.code, u);
+        finishDraft({ ...room, teams: { ...teams, [active]: team }, draft: { ...d, taken: takenLocal } });
+        return;
+      }
+      u["draft/round"] = round; u["draft/turnIndex"] = turnIndex; u["draft/pickInTurn"] = 0;
+      u["draft/deadline"] = Date.now() + c.turnTime * 1000;
+      window.RC_NET.patch(state.net.code, u);
+    }
+
+    // fim do draft: host monta os CPUs do restante e vai pro torneio (Fase D placeholder)
+    function finishDraft(room) {
+      stopDraftTimer();
+      const c = cfgOr(room.config);
+      const teams = room.teams || {};
+      const total = teamCount(c);
+      const cpuNeeded = c.fill === "cpu" ? Math.max(0, total - Object.keys(teams).length) : 0;
+      const taken = { ...((room.draft && room.draft.taken) || {}) };
+      const u = { status: "running", "draft/done": true };
+      const names = [...CPU_NAMES].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < cpuNeeded; i++) {
+        const t = autoBuildTeam(names[i % names.length] || ("CPU " + (i + 1)), taken);
+        Object.values(t.lineup || {}).forEach(p => { taken[p.id] = "cpu" + i; });
+        u["teams/cpu" + i] = t;
+      }
+      window.RC_NET.patch(state.net.code, u);
+    }
+
+    // ---- cartas ----
+    function tdUseBloqueio(playerId) {
+      const r = tdRoom(); if (!r || !tdIsMyTurn()) return;
+      const team = tdMyTeam();
+      if (team.bloqueioUsed) { showToast("Voce ja usou o bloqueio."); return; }
+      window.RC_NET.setTeamField(state.net.code, clientId, { protectedId: playerId, bloqueioUsed: true });
+      showToast("Jogador protegido (segredo).");
+      state.tdPendingCard = null; render();
+    }
+    function tdUseTroca(giveSlot, giveGroup, targetTeam, targetPlayerId) {
+      const r = tdRoom(); if (!r || !tdIsMyTurn()) return;
+      const team = tdMyTeam();
+      if (team.trocaUsed) { showToast("Voce ja usou a troca."); return; }
+      window.RC_NET.patch(state.net.code, {
+        ["teams/" + clientId + "/trocaUsed"]: true,
+        ["draft/pendingTroca"]: { by: clientId, giveSlot, giveGroup, targetTeam, targetPlayerId }
+      });
+      state.tdPendingCard = null;
+      showToast("Troca enviada...");
+      render();
+    }
+    // host resolve a troca pendente
+    function hostResolveTroca(room) {
+      const pt = room.draft && room.draft.pendingTroca;
+      if (!pt) return;
+      const teams = room.teams || {};
+      const targetTeam = teams[pt.targetTeam] || {};
+      const stealer = teams[pt.by] || {};
+      const u = { "draft/pendingTroca": null };
+      // acha o jogador alvo (lineup/bench) no time alvo
+      let tGroup, tSlot, tPlayer;
+      ["lineup", "bench"].forEach(g => {
+        const grp = targetTeam[g] || {};
+        for (const s in grp) if (grp[s] && grp[s].id === pt.targetPlayerId) { tGroup = g; tSlot = s; tPlayer = grp[s]; }
+      });
+      if (!tPlayer) { window.RC_NET.setDraft(state.net.code, { pendingTroca: null }); return; }
+      if (targetTeam.protectedId === pt.targetPlayerId) {
+        // BLOQUEADO: troca falha, ladrao ja perdeu a carta (trocaUsed=true). so avisa.
+        u["draft/lastTrocaResult"] = { by: pt.by, blocked: true, from: pt.targetTeam, at: Date.now() };
+        window.RC_NET.patch(state.net.code, u);
+        return;
+      }
+      // swap: alvo entra na vaga que o ladrao deu; jogador dado vai pro time alvo na vaga que vagou
+      const giveGrp = stealer[pt.giveGroup] || {};
+      const givePlayer = giveGrp[pt.giveSlot];
+      if (!givePlayer) { window.RC_NET.setDraft(state.net.code, { pendingTroca: null }); return; }
+      u["teams/" + pt.by + "/" + pt.giveGroup + "/" + pt.giveSlot] = { ...tPlayer, natural: givePlayer.natural };
+      u["teams/" + pt.targetTeam + "/" + tGroup + "/" + tSlot] = { ...givePlayer, natural: tPlayer.natural };
+      u["draft/taken/" + tPlayer.id] = pt.by;
+      u["draft/taken/" + givePlayer.id] = pt.targetTeam;
+      u["draft/lastTrocaResult"] = { by: pt.by, blocked: false, took: tPlayer.short, from: pt.targetTeam, at: Date.now() };
+      window.RC_NET.patch(state.net.code, u);
+    }
+
+    // ---- render do draft ----
+    function renderTourneyDraft() {
+      const r = tdRoom(); if (!r || !r.draft) return;
+      const d = r.draft, teams = r.teams || {};
+      const myTurn = tdIsMyTurn();
+      const activeId = tdActive(d);
+      const need = picksThisTurn(d.round);
+      const myTeam = teams[clientId] || {};
+      if (!myTurn) state.tdCard = null; // cartas so na sua vez
+      const activeName = (teams[activeId] && teams[activeId].apelido) || "?";
+      el.tdTurnTitle.textContent = myTurn ? "Sua vez" : `Vez de ${activeName}`;
+      el.tdTurnHint.textContent = myTurn ? `Pegue ${need} — feitos ${d.pickInTurn || 0}/${need}` : "Aguarde sua vez...";
+      renderTdField(myTeam);
+      renderTdCards(myTeam, myTurn);
+      el.tdPickPanel.hidden = !myTurn;
+      if (myTurn) renderTdPick(r, myTeam);
+      renderTdBoard(r);
+    }
+
+    function renderTdField(team) {
+      const form = formations[team.formation || "4-3-3"];
+      const rowIds = [...new Set(form.slots.map(s => s.row))].sort((a, b) => a - b);
+      el.tdField.style.gridTemplateRows = `repeat(${rowIds.length}, 1fr)`;
+      const lineup = team.lineup || {};
+      el.tdFieldHint.textContent = `${team.count || 0}/${TROSTER}`;
+      el.tdField.innerHTML = `<div class="midline"></div><div class="circle"></div>` + rowIds.map(row => `
+        <div class="field-row">
+          ${form.slots.filter(s => s.row === row).map(slot => {
+            const p = lineup[slot.id];
+            const prot = p && team.protectedId === p.id;
+            return `<div class="slot ${p ? "is-filled" : ""} ${prot ? "is-protected" : ""}">${p ? (p.short + (prot ? " 🛡" : "")) : slot.pos}</div>`;
+          }).join("")}
+        </div>`).join("");
+    }
+
+    function renderTdPick(r, myTeam) {
+      const taken = r.draft.taken || {};
+      if (!state.draw) {
+        el.tdPickHint.textContent = "Role uma selecao";
+        el.tdDrawCard.innerHTML = `<button class="swap-action multi-cta" id="tdRollBtn" type="button">Rolar selecao</button>`;
+        el.tdDrawCard.querySelector("#tdRollBtn").onclick = tdRoll;
+        el.tdPlayerList.innerHTML = "";
+        return;
+      }
+      const draw = state.draw;
+      el.tdPickHint.textContent = `${draw.country} ${draw.year}`;
+      el.tdDrawCard.innerHTML = `<div class="td-draw-head"><strong>${draw.country} ${draw.year}</strong>
+        <button class="small-action" id="tdRerollBtn" type="button" ${state.rerolls <= 0 ? "disabled" : ""}>Outra (${state.rerolls})</button></div>`;
+      el.tdDrawCard.querySelector("#tdRerollBtn").onclick = tdReroll;
+      el.tdPlayerList.innerHTML = draw.players.map(p => {
+        const avail = tdAvailable(p, myTeam, taken);
+        return `<button class="player-card" type="button" data-tp="${p.id}" ${avail ? "" : "disabled"}>
+          <span class="kit-number">${p.num}</span>
+          <span class="player-main"><span class="player-name">${p.name}</span>
+          <span class="player-detail">${p.positions.join("/")} · ${p.tag}</span></span>
+          <span class="rating">${p.rating}</span></button>`;
+      }).join("");
+      el.tdPlayerList.querySelectorAll("[data-tp]").forEach(b => b.onclick = () => tdPick(b.dataset.tp));
+    }
+
+    function renderTdBoard(r) {
+      const teams = r.teams || {}, d = r.draft;
+      const order = d.order || [];
+      const mode = state.tdCard;
+      el.tdBoardHint.textContent = mode
+        ? (mode === "bloqueio" ? "Toque num jogador SEU pra proteger"
+          : mode.step === "give" ? "Toque num jogador SEU pra oferecer"
+            : "Toque num jogador do adversario")
+        : `${order.length} humanos`;
+      el.tdBoard.innerHTML = order.map(id => {
+        const t = teams[id] || {};
+        const isMe = id === clientId;
+        const active = tdActive(d) === id;
+        const entries = [];
+        ["lineup", "bench"].forEach(g => { const grp = t[g] || {}; for (const s in grp) if (grp[s]) entries.push({ p: grp[s], g, s }); });
+        entries.sort((a, b) => (a.p.seq || 0) - (b.p.seq || 0));
+        const maxSeq = entries.reduce((m, e) => Math.max(m, e.p.seq || 0), 0);
+        const chips = entries.map(e => {
+          const hide = !isMe && !d.done && e.p.seq === maxSeq;
+          const prot = isMe && t.protectedId === e.p.id;
+          const label = hide ? "???" : (e.p.short + (prot ? " 🛡" : ""));
+          let attr = null;
+          if (mode === "bloqueio" && isMe) attr = `data-card="bloq" data-pid="${e.p.id}"`;
+          else if (mode && mode.step === "give" && isMe) attr = `data-card="give" data-group="${e.g}" data-slot="${e.s}"`;
+          else if (mode && mode.step === "take" && !isMe && !hide) attr = `data-card="take" data-team="${id}" data-pid="${e.p.id}"`;
+          return attr ? `<button class="td-chip is-target" ${attr}>${label}</button>` : `<span class="td-chip ${prot ? "is-prot" : ""}">${label}</span>`;
+        }).join("");
+        return `<div class="td-team ${active ? "is-active" : ""}">
+          <div class="td-team-head"><strong>${t.apelido || "?"}${isMe ? " (voce)" : ""}</strong><span>${t.count || 0}/${TROSTER}</span></div>
+          <div class="td-chips">${chips || "<span class='td-chip empty'>—</span>"}</div>
+        </div>`;
+      }).join("");
+      el.tdBoard.querySelectorAll('[data-card="bloq"]').forEach(b => b.onclick = () => { state.tdCard = null; tdUseBloqueio(b.dataset.pid); });
+      el.tdBoard.querySelectorAll('[data-card="give"]').forEach(b => b.onclick = () => { state.tdCard = { step: "take", giveGroup: b.dataset.group, giveSlot: b.dataset.slot }; showToast("Agora toque no jogador do adversario que quer roubar."); render(); });
+      el.tdBoard.querySelectorAll('[data-card="take"]').forEach(b => b.onclick = () => { const m = state.tdCard; state.tdCard = null; tdUseTroca(m.giveSlot, m.giveGroup, b.dataset.team, b.dataset.pid); });
+    }
+
+    function renderTdCards(myTeam, myTurn) {
+      const bloq = !myTeam.bloqueioUsed, troca = !myTeam.trocaUsed;
+      const mode = state.tdCard;
+      el.tdCards.innerHTML = `
+        <button class="td-card ${mode === "bloqueio" ? "is-on" : ""}" id="tdBloqBtn" type="button" ${(!myTurn || !bloq) ? "disabled" : ""}>🛡 Bloqueio${bloq ? "" : " ✓"}</button>
+        <button class="td-card ${(mode && mode.step) ? "is-on" : ""}" id="tdTrocaBtn" type="button" ${(!myTurn || !troca) ? "disabled" : ""}>🔄 Troca${troca ? "" : " ✓"}</button>`;
+      const bb = el.tdCards.querySelector("#tdBloqBtn");
+      if (bb) bb.onclick = () => { state.tdCard = (mode === "bloqueio") ? null : "bloqueio"; if (state.tdCard) showToast("Toque num jogador SEU pra proteger (segredo)."); render(); };
+      const tb = el.tdCards.querySelector("#tdTrocaBtn");
+      if (tb) tb.onclick = () => { state.tdCard = (mode && mode.step) ? null : { step: "give" }; if (state.tdCard) showToast("Toque num jogador SEU pra oferecer na troca."); render(); };
     }
 
     function leaveTournament() {
+      stopDraftTimer();
+      state.tdCard = null;
       const code = state.tourney && state.tourney.code;
       state.tourney = null;
       if (code && netReady()) window.RC_NET.leave(code, clientId);
@@ -2054,7 +2486,8 @@
         rounds: cfg.rounds || 3,
         fill: cfg.fill || "cpu",
         experience: cfg.experience || "assistir",
-        spread: cfg.spread !== false
+        spread: cfg.spread !== false,
+        turnTime: cfg.turnTime || 30
       };
     }
 
@@ -2087,6 +2520,7 @@
       }
       html += cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
       html += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
+      html += cfgSegRow("Tempo por jogada", "turnTime", [{ v: 20, l: "20s" }, { v: 30, l: "30s" }, { v: 45, l: "45s" }, { v: 60, l: "60s" }], c.turnTime);
       html += cfgSegRow("Espalhar humanos", "spread", [{ v: "on", l: "Ligado" }, { v: "off", l: "Desligado" }], c.spread ? "on" : "off");
       html += `<div class="sync-line">${c.spread ? "Humanos ficam o mais separados possivel." : "Distribuicao aleatoria dos humanos."}</div>`;
       return html;
@@ -2105,6 +2539,7 @@
       }
       rows.push(["Vagas", c.fill === "humanos" ? "So humanos" : "Completar com CPU"]);
       rows.push(["Experiencia", c.experience === "interativo" ? "Interativo" : "Assistir"]);
+      rows.push(["Tempo/jogada", c.turnTime + "s"]);
       rows.push(["Espalhar humanos", c.spread ? "Ligado" : "Desligado"]);
       return `<div class="section-head"><h2 class="section-title">Campeonato</h2><span class="hint">Definido pelo anfitriao</span></div>`
         + `<div class="cfg-readonly">` + rows.map(r => `<div class="cfg-ro-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("") + `</div>`;
@@ -2131,7 +2566,7 @@
             if (!netReady()) return;
             const key = btn.dataset.cfg;
             let val = btn.dataset.val;
-            if (["size", "groupSize", "advance", "rounds", "knockoutPhase"].includes(key)) val = Number(val);
+            if (["size", "groupSize", "advance", "rounds", "knockoutPhase", "turnTime"].includes(key)) val = Number(val);
             else if (key === "spread") val = val === "on";
             window.RC_NET.setConfig(net.code, { [key]: val });
           });
@@ -2664,6 +3099,7 @@
       if (state.screen === "final") renderFinal();
       if (state.screen === "multiHome") renderMultiHome();
       if (state.screen === "multiLobby") renderMultiLobby();
+      if (state.screen === "tourneyDraft") renderTourneyDraft();
       if (state.screen === "tourneyWait") renderTourneyWait();
       renderActions();
     }
@@ -2679,6 +3115,8 @@
         ? "Inicio"
         : state.screen === "tourneyWait"
           ? "Torneio"
+        : state.screen === "tourneyDraft"
+          ? "Draft ao vivo"
         : state.screen === "draft"
           ? (state.tourney ? `Seu time · ${state.formation}` : `${state.formation} - ${state.teamName}`)
           : state.screen === "match"
@@ -2697,6 +3135,7 @@
       el.finalView.classList.toggle("is-active", state.screen === "final");
       el.multiHomeView.classList.toggle("is-active", state.screen === "multiHome");
       el.multiLobbyView.classList.toggle("is-active", state.screen === "multiLobby");
+      el.tourneyDraftView.classList.toggle("is-active", state.screen === "tourneyDraft");
       el.tourneyWaitView.classList.toggle("is-active", state.screen === "tourneyWait");
     }
 
@@ -3017,7 +3456,7 @@
 
     function renderActions() {
       // Home e telas de multiplayer tem navegacao propria; esconde a barra de acao padrao.
-      const noActionBar = state.screen === "home" || state.screen === "multiHome" || state.screen === "multiLobby" || state.screen === "tourneyWait";
+      const noActionBar = state.screen === "home" || state.screen === "multiHome" || state.screen === "multiLobby" || state.screen === "tourneyWait" || state.screen === "tourneyDraft";
       el.actionBar.hidden = noActionBar;
       if (noActionBar) return;
       el.actionBar.classList.toggle("is-match", state.screen === "match");
@@ -3134,7 +3573,7 @@
           status: "lobby",
           host: player.id,
           createdAt: serverTimestamp(),
-          config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true },
+          config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true, turnTime: 30 },
           players: { [player.id]: { apelido: player.apelido, ready: false, connected: true } }
         });
         attachPresence(code, player.id);
@@ -3166,12 +3605,22 @@
         // merge dentro de /config (mantem os outros campos)
         return update(ref(db, "rooms/" + code + "/config"), patch);
       },
-      startTournament(code, teams) {
-        // host cria os slots de times (humanos + CPU) e muda o status
-        return update(roomRef(code), { status: "drafting", teams });
+      startTournament(code, updates) {
+        // host inicia: cria slots humanos + estado do draft (multi-caminho)
+        return update(roomRef(code), updates);
       },
       setTeam(code, teamId, team) {
         return set(ref(db, "rooms/" + code + "/teams/" + teamId), team);
+      },
+      // escrita multi-caminho a partir da raiz da sala (pick, swap de troca, fim do draft)
+      patch(code, updates) {
+        return update(roomRef(code), updates);
+      },
+      setDraft(code, p) {
+        return update(ref(db, "rooms/" + code + "/draft"), p);
+      },
+      setTeamField(code, teamId, p) {
+        return update(ref(db, "rooms/" + code + "/teams/" + teamId), p);
       },
       setStatus(code, status) {
         return update(roomRef(code), { status });
