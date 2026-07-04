@@ -274,53 +274,78 @@
     /* garante que o atributo hidden funcione mesmo em elementos com display flex/grid */
     [hidden] { display: none !important; }
 
-    .home-hero {
-      text-align: center;
-      padding: 26px 16px;
+    body.is-home-screen {
+      background: oklch(0.07 0.008 250);
     }
 
-    .home-brand {
-      font-family: var(--display, inherit);
-      font-size: 34px;
-      font-weight: 950;
-      letter-spacing: 0.02em;
-      color: var(--ink);
+    body.is-home-screen .app {
+      background: oklch(0.955 0.022 88);
     }
 
-    .home-tag {
-      margin-top: 6px;
-      font-size: 13px;
-      color: var(--muted, oklch(0.72 0.02 235));
+    body.is-home-screen .topbar {
+      display: none;
     }
 
-    .home-option {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
+    #homeView.is-active {
+      display: block;
+      padding: 0;
+    }
+
+    .home-poster {
+      position: relative;
       width: 100%;
-      text-align: left;
-      padding: 18px 18px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: var(--panel-2);
-      color: var(--ink);
+      height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+      background:
+        oklch(0.955 0.022 88)
+        url("assets/home-poster.jpg")
+        center top / 100% 100%
+        no-repeat;
+      isolation: isolate;
     }
 
-    .home-option.is-primary {
-      border-color: var(--primary);
-      background: oklch(0.20 0.055 150);
+    .home-hotspot {
+      position: absolute;
+      z-index: 2;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
-    .home-option-title {
-      font-size: 18px;
-      font-weight: 950;
+    .home-hotspot.is-solo {
+      left: 10.6%;
+      top: 32.4%;
+      width: 79.1%;
+      height: 17.6%;
     }
 
-    .home-option-sub {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted, oklch(0.72 0.02 235));
+    .home-hotspot.is-multi {
+      left: 10.6%;
+      top: 52.6%;
+      width: 79.1%;
+      height: 17.5%;
+    }
+
+    .home-hotspot:focus-visible {
+      outline: 4px solid oklch(0.68 0.22 145);
+      outline-offset: 4px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .multi-back {
@@ -1466,7 +1491,7 @@
     }
   </style>
 </head>
-<body>
+<body class="is-home-screen">
   <main class="app" aria-live="polite">
     <header class="topbar">
       <div class="brand">
@@ -1479,19 +1504,16 @@
       </div>
     </header>
 
-    <section class="view is-active" id="homeView" aria-label="Inicio">
-      <section class="panel panel-pad home-hero">
-        <div class="home-brand">REI DA COPA</div>
-        <div class="home-tag">Monte seu time dos sonhos e va a decisao.</div>
-      </section>
-      <button class="home-option" id="homeCpuBtn" type="button">
-        <span class="home-option-title">Contra CPU</span>
-        <span class="home-option-sub">Jogue sozinho: monte o XI e dispute a Copa</span>
-      </button>
-      <button class="home-option is-primary" id="openMultiBtn" type="button">
-        <span class="home-option-title">Multiplayer</span>
-        <span class="home-option-sub">Crie um campeonato online e jogue com amigos</span>
-      </button>
+    <section class="view is-active home-screen" id="homeView" aria-label="Inicio">
+      <div class="home-poster" role="img" aria-label="Rei da Copa Temporada 2026, com arte de futebol em estilo poster e duas opcoes de jogo">
+        <h1 class="sr-only">Rei da Copa Temporada 2026</h1>
+        <button class="home-hotspot is-solo" id="homeCpuBtn" type="button" aria-label="Solo, CPU offline">
+          <span class="sr-only">Solo CPU Offline</span>
+        </button>
+        <button class="home-hotspot is-multi" id="openMultiBtn" type="button" aria-label="Multiplayer, jogue com os amigos">
+          <span class="sr-only">Multiplayer, jogue com os amigos</span>
+        </button>
+      </div>
     </section>
 
     <section class="view" id="draftView" aria-label="Draft">
@@ -4207,6 +4229,7 @@
     }
 
     function renderViews() {
+      document.body.classList.toggle("is-home-screen", state.screen === "home");
       el.homeView.classList.toggle("is-active", state.screen === "home");
       el.draftView.classList.toggle("is-active", state.screen === "draft");
       el.matchView.classList.toggle("is-active", state.screen === "match");
