@@ -375,6 +375,40 @@
       color: var(--accent);
     }
 
+    .cfg-seg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .cfg-seg .choice-button {
+      flex: 1 1 auto;
+      padding: 0 10px;
+      min-width: 44px;
+    }
+
+    .cfg-readonly {
+      display: grid;
+      gap: 6px;
+    }
+
+    .cfg-ro-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      font-weight: 850;
+      font-size: 13px;
+    }
+
+    .cfg-ro-row span {
+      color: var(--muted, oklch(0.72 0.02 235));
+      font-weight: 700;
+    }
+
     .lobby-players {
       display: grid;
       gap: 8px;
@@ -1251,7 +1285,7 @@
       <section class="panel panel-pad">
         <div class="section-head">
           <h1 class="section-title">Sala</h1>
-          <span class="hint" id="lobbyModeHint">Final 1x1</span>
+          <span class="hint" id="lobbyModeHint">Torneio</span>
         </div>
         <div class="lobby-code">
           <div>
@@ -1259,6 +1293,13 @@
             <strong class="lobby-code-value" id="lobbyCode">----</strong>
           </div>
           <button class="small-action" id="copyCodeBtn" type="button">Copiar</button>
+        </div>
+      </section>
+      <section class="panel panel-pad" id="lobbyConfigPanel"></section>
+      <section class="panel panel-pad">
+        <div class="section-head">
+          <h2 class="section-title">Jogadores</h2>
+          <span class="hint" id="lobbyPlayersCount">0</span>
         </div>
         <div class="lobby-players" id="lobbyPlayers"></div>
         <button class="swap-action multi-cta" id="readyBtn" type="button">Estou pronto</button>
@@ -1667,6 +1708,8 @@
       lobbyModeHint: document.getElementById("lobbyModeHint"),
       lobbyCode: document.getElementById("lobbyCode"),
       copyCodeBtn: document.getElementById("copyCodeBtn"),
+      lobbyConfigPanel: document.getElementById("lobbyConfigPanel"),
+      lobbyPlayersCount: document.getElementById("lobbyPlayersCount"),
       lobbyPlayers: document.getElementById("lobbyPlayers"),
       readyBtn: document.getElementById("readyBtn"),
       startBtn: document.getElementById("startBtn"),
@@ -1805,10 +1848,12 @@
       if (!net || !net.room) return;
       const players = net.room.players || {};
       const ids = Object.keys(players);
-      const bothReady = ids.length === 2 && ids.every(id => players[id].ready);
-      if (!bothReady) { showToast("Esperando os dois ficarem prontos."); return; }
-      // Fase 2 (draft 1x1) entra aqui na proxima etapa.
-      showToast("Todos prontos! O draft 1x1 (Fase 2) chega na proxima etapa.");
+      const c = cfgOr(net.room.config);
+      const allReady = ids.length >= 1 && ids.every(id => players[id].ready);
+      if (!allReady) { showToast("Todos precisam ficar prontos."); return; }
+      if (c.fill === "humanos" && ids.length < c.size) { showToast(`Faltam ${c.size - ids.length} jogadores.`); return; }
+      // Fase C (montar os times / draft) entra aqui na proxima etapa.
+      showToast("Montar os times (Fase C) chega na proxima etapa.");
     }
 
     function copyRoomCode() {
@@ -1826,32 +1871,107 @@
       el.multiStatus.innerHTML = netReady() ? "" : `<div class="hint">Conectando ao servidor...</div>`;
     }
 
+    const FORMAT_LABEL = { matamata: "Mata-mata", grupos: "Fase de grupos", perso: "Personalizado" };
+
+    function cfgOr(cfg) {
+      cfg = cfg || {};
+      return {
+        format: cfg.format || "grupos",
+        size: cfg.size || 16,
+        fill: cfg.fill || "cpu",
+        experience: cfg.experience || "assistir",
+        groupSize: cfg.groupSize || 4,
+        advance: cfg.advance || 2
+      };
+    }
+
+    function cfgSegRow(label, key, options, current) {
+      const btns = options.map(o =>
+        `<button class="choice-button ${String(o.v) === String(current) ? "is-active" : ""}" type="button" data-cfg="${key}" data-val="${o.v}">${o.l}</button>`
+      ).join("");
+      return `<div class="field-label">${label}<div class="cfg-seg">${btns}</div></div>`;
+    }
+
+    function configEditorHtml(c) {
+      let html = `<div class="section-head"><h2 class="section-title">Campeonato</h2><span class="hint">Voce e o anfitriao</span></div>`;
+      html += cfgSegRow("Formato", "format", [{ v: "matamata", l: "Mata-mata" }, { v: "grupos", l: "Grupos" }, { v: "perso", l: "Person." }], c.format);
+      html += cfgSegRow("Times", "size", [{ v: 8, l: "8" }, { v: 16, l: "16" }, { v: 32, l: "32" }], c.size);
+      html += cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
+      html += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
+      if (c.format === "perso") {
+        html += cfgSegRow("Tamanho do grupo", "groupSize", [{ v: 3, l: "3" }, { v: 4, l: "4" }, { v: 5, l: "5" }, { v: 6, l: "6" }], c.groupSize);
+        html += cfgSegRow("Quantos passam", "advance", [{ v: 1, l: "1" }, { v: 2, l: "2" }, { v: 3, l: "3" }], c.advance);
+      } else if (c.format === "grupos") {
+        html += `<div class="sync-line">Grupos de 4, 3 jogos, os 2 melhores passam.</div>`;
+      } else {
+        html += `<div class="sync-line">Eliminatoria direta (mata-mata).</div>`;
+      }
+      return html;
+    }
+
+    function configReadonlyHtml(c) {
+      const rows = [
+        ["Formato", FORMAT_LABEL[c.format] || "Fase de grupos"],
+        ["Times", String(c.size)],
+        ["Vagas", c.fill === "humanos" ? "So humanos" : "Completar com CPU"],
+        ["Experiencia", c.experience === "interativo" ? "Interativo" : "Assistir"]
+      ];
+      if (c.format === "perso") { rows.push(["Grupo", String(c.groupSize)]); rows.push(["Passam", String(c.advance)]); }
+      return `<div class="section-head"><h2 class="section-title">Campeonato</h2><span class="hint">Definido pelo anfitriao</span></div>`
+        + `<div class="cfg-readonly">` + rows.map(r => `<div class="cfg-ro-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("") + `</div>`;
+    }
+
     function renderMultiLobby() {
       const net = state.net;
       if (!net) return;
-      el.lobbyCode.textContent = net.code;
       const room = net.room;
       const players = (room && room.players) ? room.players : {};
       const ids = Object.keys(players);
+      const c = cfgOr(room && room.config);
+      const isHost = room && room.host === clientId;
+
+      el.lobbyCode.textContent = net.code;
+      el.lobbyModeHint.textContent = `${FORMAT_LABEL[c.format]} · ${c.size} times`;
+
+      // painel de configuracao (host edita, convidado le)
+      el.lobbyConfigPanel.innerHTML = isHost ? configEditorHtml(c) : configReadonlyHtml(c);
+      if (isHost) {
+        el.lobbyConfigPanel.querySelectorAll("[data-cfg]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            if (!netReady()) return;
+            const key = btn.dataset.cfg;
+            let val = btn.dataset.val;
+            if (key === "size" || key === "groupSize" || key === "advance") val = Number(val);
+            window.RC_NET.setConfig(net.code, { [key]: val });
+          });
+        });
+      }
+
+      // jogadores
+      el.lobbyPlayersCount.textContent = `${ids.length}/${c.size}`;
       el.lobbyPlayers.innerHTML = ids.length ? ids.map(id => {
         const pl = players[id];
         const me = id === clientId;
+        const isRoomHost = room && room.host === id;
         return `<div class="lobby-player ${pl.ready ? "is-ready" : ""}">
           <span class="dot ${pl.connected ? "on" : "off"}"></span>
-          <span class="who">${pl.apelido || "Jogador"}${me ? " (voce)" : ""}</span>
-          <span class="tag">${pl.ready ? "Pronto" : "Aguardando"}</span>
+          <span class="who">${pl.apelido || "Jogador"}${me ? " (voce)" : ""}${isRoomHost ? " ·" : ""}</span>
+          <span class="tag">${isRoomHost ? "anfitriao · " : ""}${pl.ready ? "Pronto" : "Aguardando"}</span>
         </div>`;
       }).join("") : `<div class="empty-state">Aguardando jogadores...</div>`;
+
       const me = players[clientId];
       el.readyBtn.textContent = me && me.ready ? "Cancelar pronto" : "Estou pronto";
-      const isHost = room && room.host === clientId;
-      const bothReady = ids.length === 2 && ids.every(id => players[id].ready);
+
+      const allReady = ids.length >= 1 && ids.every(id => players[id].ready);
+      const enough = c.fill === "cpu" ? ids.length >= 1 : ids.length === c.size;
       el.startBtn.hidden = !isHost;
-      el.startBtn.disabled = !bothReady;
-      el.lobbyStatus.textContent = ids.length < 2
-        ? "Compartilhe o codigo com seu amigo."
-        : bothReady ? (isHost ? "Todos prontos! Toque em Comecar." : "Todos prontos! Esperando o anfitriao.")
-          : "Marquem Pronto para comecar.";
+      el.startBtn.disabled = !(allReady && enough);
+      el.lobbyStatus.textContent =
+        ids.length < 1 ? "..."
+          : (c.fill === "humanos" && ids.length < c.size) ? `Faltam ${c.size - ids.length} jogadores (modo so humanos).`
+            : !allReady ? "Todos precisam ficar Prontos."
+              : isHost ? "Todos prontos! Toque em Comecar." : "Todos prontos! Esperando o anfitriao.";
     }
 
     function p(id, num, name, short, positions, rating, tag) {
@@ -2815,9 +2935,9 @@
         if (snap.exists()) throw new Error("exists");
         await set(roomRef(code), {
           status: "lobby",
-          mode: "final1v1",
           host: player.id,
           createdAt: serverTimestamp(),
+          config: { format: "grupos", size: 16, fill: "cpu", experience: "assistir", groupSize: 4, advance: 2 },
           players: { [player.id]: { apelido: player.apelido, ready: false, connected: true } }
         });
         attachPresence(code, player.id);
@@ -2828,7 +2948,8 @@
         if (!snap.exists()) throw new Error("not-found");
         const room = snap.val();
         const ids = Object.keys(room.players || {});
-        if (!ids.includes(player.id) && ids.length >= 2) throw new Error("full");
+        const cap = (room.config && room.config.size) || 16;
+        if (!ids.includes(player.id) && ids.length >= cap) throw new Error("full");
         await update(playerRef(code, player.id), { apelido: player.apelido, ready: false, connected: true });
         attachPresence(code, player.id);
         return true;
@@ -2842,6 +2963,10 @@
       },
       setReady(code, id, ready) {
         return update(playerRef(code, id), { ready: !!ready });
+      },
+      setConfig(code, patch) {
+        // merge dentro de /config (mantem os outros campos)
+        return update(ref(db, "rooms/" + code + "/config"), patch);
       },
       setStatus(code, status) {
         return update(roomRef(code), { status });

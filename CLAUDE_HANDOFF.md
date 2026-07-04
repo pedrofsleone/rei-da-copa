@@ -335,8 +335,10 @@ Feito nesta sessao:
 - Multiplayer **Fase 0** (Firebase) e **Fase 1** (lobby online por codigo, hoje 1x1) feitas e validadas.
 - **Fase A (Home)** feita e validada: tela inicial `homeView` (screen `home`, agora e a tela de abertura) com opcoes **Contra CPU** (-> draft solo) e **Multiplayer** (-> multiHome). Botao `← Inicio` no draft; back do multiHome volta pra home. Barra de acao e pills escondidas fora de draft/match (via regra CSS `[hidden]{display:none!important}` pra o atributo hidden funcionar em flex/grid). Navegacao, solo e multiplayer intactos, sem erro de console.
 
+DEPLOY (Fase H CONCLUIDA): repo GitHub **https://github.com/pedrofsleone/rei-da-copa** (usuario `pedrofsleone`), publicado via **GitHub Pages** em **https://pedrofsleone.github.io/rei-da-copa/** (no ar, mobile-friendly). IMPORTANTE: tem um arquivo **`.nojekyll`** na raiz — sem ele o build do Pages FALHA (Jekyll se engasga com o HTML/JS); nao remover. Deploy de novas versoes: so `git add/commit/push` na pasta `C:\Users\pedro\Desktop\Rei-da-Copa` que o Pages reconstroi sozinho em ~1min. Git config: repo local com `safe.directory` marcada (a pasta pertence a outro SID no Windows), identidade Pedro Leone/gmail, remote `origin` = o repo acima, credencial via Git Credential Manager (helper `manager`, ja logado). `gh` CLI NAO instalado.
+
 Proximos passos (roadmap do plano de torneios):
-1. **Fase H — GitHub Pages** (repo `rei-da-copa` ainda nao criado): URL publica pra testar em celular / entre dispositivos (resolve o "nao abre no telefone"). Pedro prefere ser guiado passo a passo.
+1. ~~Fase H — GitHub Pages~~ FEITO (ver acima).
 2. **Fase B — Lobby de torneio:** RC_NET pra N jogadores; config do criador (formato/tamanho/preenchimento/experiencia); lobby lista todos; host inicia.
 3. **Fase C — Draft de todos:** cada humano monta o XI e envia; host auto-drafta os CPUs.
 4. **Fase D — Torneio modo ASSISTIR:** host monta grupos/bracket e resolve placares; tabela/chaveamento ao vivo; playback dos seus jogos; campeao. (1o torneio jogavel ponta a ponta.)
