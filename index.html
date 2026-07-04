@@ -2080,6 +2080,7 @@
       if (st === "drafting") {
         state.tourney = state.tourney || { code: state.net.code };
         state.screen = "tourneyDraft";
+        ensureMyTournamentTeamReady(room);
         surfaceTrocaResult(room);
         if (isRoomHost(room)) { startDraftTimer(); hostDraftTick(room); }
         render();
@@ -2094,6 +2095,15 @@
     }
 
     function isRoomHost(room) { return !!room && room.host === clientId; }
+
+    function ensureMyTournamentTeamReady(room) {
+      if (!room || !state.net || !netReady()) return;
+      const team = room.teams && room.teams[clientId];
+      if (!team || !team.human || team.submitted || (team.count || 0) < TROSTER) return;
+      const u = {};
+      applyOnlineTeamSummary(u, clientId, team);
+      window.RC_NET.patch(state.net.code, u);
+    }
 
     // avisa o ladrao/alvo do resultado da ultima troca (uma vez)
     function surfaceTrocaResult(room) {
@@ -2133,6 +2143,33 @@
       const vals = Object.values(lineup).filter(p => positions.includes(p.natural));
       if (!vals.length) return 80;
       return Math.round(vals.reduce((s, p) => s + p.rating, 0) / vals.length);
+    }
+
+    function onlineTeamPlayers(team) {
+      const lineup = team && team.lineup ? team.lineup : {};
+      const bench = team && team.bench ? team.bench : {};
+      return [...Object.values(lineup), ...Object.values(bench)].filter(Boolean);
+    }
+
+    function onlineTeamSummary(team) {
+      const lineup = team && team.lineup ? team.lineup : {};
+      const starters = Object.values(lineup).filter(Boolean);
+      const all = onlineTeamPlayers(team);
+      const captain = [...starters].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0] || all[0] || null;
+      return {
+        submitted: all.length >= TROSTER,
+        overall: starters.length ? Math.round(starters.reduce((s, p) => s + (p.rating || 80), 0) / starters.length) : 80,
+        attack: avgRatingByPos(lineup, ["PE", "CA", "PD", "MEI"]),
+        defense: avgRatingByPos(lineup, ["GOL", "LD", "ZAG", "LE", "VOL"]),
+        captainId: captain ? captain.id : null
+      };
+    }
+
+    function applyOnlineTeamSummary(updates, teamId, team) {
+      const summary = onlineTeamSummary(team);
+      Object.keys(summary).forEach(key => {
+        updates["teams/" + teamId + "/" + key] = summary[key];
+      });
     }
 
     // Monta um time de CPU. Cada CPU tem um "nivel" alvo (tier) pra variar a forca entre os times.
@@ -2186,7 +2223,7 @@
           name: (players[id].apelido || "Jogador") + " FC",
           apelido: players[id].apelido || "Jogador",
           human: id, formation: "4-3-3", count: 0,
-          trocaUsed: false, bloqueioUsed: false, protectedId: null
+          submitted: false, trocaUsed: false, bloqueioUsed: false, protectedId: null
         };
       });
       updates["draft"] = {
@@ -2257,16 +2294,21 @@
       const seq = (r.draft.seq || 0) + 1;
       const obj = { id: player.id, short: player.short, name: player.name, natural, rating: player.rating, seq };
       const c = cfgOr(r.config);
+      const nextTeam = JSON.parse(JSON.stringify(team || {}));
+      nextTeam[opt.group] = nextTeam[opt.group] || {};
+      nextTeam[opt.group][opt.slotId] = obj;
+      nextTeam.count = (team.count || 0) + 1;
       const u = {};
       u["teams/" + clientId + "/" + opt.group + "/" + opt.slotId] = obj;
-      u["teams/" + clientId + "/count"] = (team.count || 0) + 1;
+      u["teams/" + clientId + "/count"] = nextTeam.count;
       u["draft/taken/" + player.id] = clientId;
       u["draft/seq"] = seq;
       u["draft/pickInTurn"] = (r.draft.pickInTurn || 0) + 1;
       u["draft/deadline"] = Date.now() + c.turnTime * 1000; // reinicia o tempo pra proxima escolha
+      if (nextTeam.count >= TROSTER) applyOnlineTeamSummary(u, clientId, nextTeam);
       window.RC_NET.patch(state.net.code, u);
       state.draw = null; state.tdSelected = null;
-      showToast(`${player.short} no ${opt.pos}!`);
+      showToast(nextTeam.count >= TROSTER ? "Time pronto!" : `${player.short} no ${opt.pos}!`);
       render();
     }
 
@@ -2320,19 +2362,33 @@
         else if (o.benchOpen.length) { group = "bench"; slotId = o.benchOpen[0].id; natural = p.positions[0]; }
         else continue;
         seq++; cnt++;
-        u["teams/" + active + "/" + group + "/" + slotId] = { id: p.id, short: p.short, name: p.name, natural, rating: p.rating, seq };
+        const pickObj = { id: p.id, short: p.short, name: p.name, natural, rating: p.rating, seq };
+        team[group] = team[group] || {};
+        team[group][slotId] = pickObj;
+        team.count = cnt;
+        u["teams/" + active + "/" + group + "/" + slotId] = pickObj;
         u["teams/" + active + "/count"] = cnt;
         u["draft/taken/" + p.id] = active;
         u["draft/seq"] = seq;
+        takenLocal[p.id] = active;
         picked = true; break;
       }
+      if (cnt >= TROSTER) applyOnlineTeamSummary(u, active, team);
       const newPickInTurn = (d.pickInTurn || 0) + (picked ? 1 : 0);
       const need = picksThisTurn(d.round);
       if (newPickInTurn >= need || cnt >= TROSTER) {
         const n = (d.order || []).length;
         let round = d.round, turnIndex = d.turnIndex + 1;
         if (turnIndex >= n) { turnIndex = 0; round += 1; }
-        if (round > TLASTROUND) { window.RC_NET.patch(state.net.code, u); finishDraft(room); return; }
+        if (round > TLASTROUND) {
+          const finalRoom = {
+            ...room,
+            teams: { ...teams, [active]: team },
+            draft: { ...d, taken: takenLocal }
+          };
+          finishDraft(finalRoom, u);
+          return;
+        }
         u["draft/round"] = round; u["draft/turnIndex"] = turnIndex; u["draft/pickInTurn"] = 0;
         u["draft/deadline"] = Date.now() + c.turnTime * 1000;
       } else {
@@ -2343,7 +2399,7 @@
     }
 
     // fim do draft: host monta os CPUs do restante e vai pro torneio (Fase D placeholder)
-    function finishDraft(room) {
+    function finishDraft(room, seedUpdates) {
       stopDraftTimer();
       const c = cfgOr(room.config);
       const teams = room.teams || {};
@@ -2351,7 +2407,14 @@
       const cpuNeeded = c.fill === "cpu" ? Math.max(0, total - Object.keys(teams).length) : 0;
       const taken = { ...((room.draft && room.draft.taken) || {}) };
       const allTeams = JSON.parse(JSON.stringify(teams));
-      const u = { status: "running", "draft/done": true };
+      const u = { ...(seedUpdates || {}), status: "running", "draft/done": true };
+      Object.keys(allTeams).forEach(id => {
+        if (allTeams[id] && allTeams[id].human) {
+          const summary = onlineTeamSummary(allTeams[id]);
+          allTeams[id] = { ...allTeams[id], ...summary };
+          applyOnlineTeamSummary(u, id, allTeams[id]);
+        }
+      });
       const names = [...CPU_NAMES].sort(() => Math.random() - 0.5);
       for (let i = 0; i < cpuNeeded; i++) {
         const t = autoBuildTeam(names[i % names.length] || ("CPU " + (i + 1)), taken);
@@ -2621,14 +2684,16 @@
       const activeId = tdActive(d);
       const need = picksThisTurn(d.round);
       const myTeam = teams[clientId] || {};
+      const myDone = (myTeam.count || 0) >= TROSTER || !!myTeam.submitted;
       if (!myTurn) { state.tdCard = null; state.tdSelected = null; } // acoes so na sua vez
       const activeName = (teams[activeId] && teams[activeId].apelido) || "?";
-      el.tdTurnTitle.textContent = myTurn ? "Sua vez" : `Vez de ${activeName}`;
-      el.tdTurnHint.textContent = myTurn ? `Pegue ${need} — feitos ${d.pickInTurn || 0}/${need}` : "Aguarde sua vez...";
+      el.tdTurnTitle.textContent = myDone ? "Time pronto" : myTurn ? "Sua vez" : `Vez de ${activeName}`;
+      el.tdTurnHint.textContent = myDone ? "Elenco enviado. Aguarde o torneio comecar."
+        : myTurn ? `Pegue ${need} - feitos ${d.pickInTurn || 0}/${need}` : "Aguarde sua vez...";
       renderTdField(myTeam);
       renderTdCards(myTeam, myTurn);
-      el.tdPickPanel.hidden = !myTurn;
-      if (myTurn) renderTdPick(r, myTeam);
+      el.tdPickPanel.hidden = !myTurn || myDone;
+      if (myTurn && !myDone) renderTdPick(r, myTeam);
       renderTdBoard(r);
     }
 
