@@ -610,6 +610,69 @@
       gap: 8px;
     }
 
+    .bc-central {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--field, oklch(0.28 0.06 152));
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bc-central.is-mine { border-color: var(--primary); }
+
+    .bc-live {
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: 0.08em;
+      color: oklch(0.95 0.05 30);
+    }
+
+    .bc-score {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bc-team {
+      font-size: 14px;
+      font-weight: 900;
+      color: oklch(0.985 0 0);
+      text-align: center;
+    }
+
+    .bc-goals {
+      font-family: var(--display, inherit);
+      font-size: 40px;
+      font-weight: 950;
+      color: oklch(0.985 0 0);
+      text-align: center;
+    }
+
+    .bc-timeline {
+      display: grid;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      background: oklch(0.14 0.02 235 / 0.55);
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .bc-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 8px;
+    }
+
+    .bc-livechip {
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 11px;
+    }
+
     .tourney-section {
       display: grid;
       gap: 8px;
@@ -2315,10 +2378,14 @@
         render();
         return;
       }
-      // running / done -> Fase D (por enquanto, tela de espera)
+      // running / done -> Fase D (transmissao progressiva)
       stopDraftTimer();
       state.tourney = state.tourney || { code: state.net.code };
       if (isRoomHost(room) && st === "running" && !room.tournament) hostEnsureTournament(room);
+      if (st === "running" && room.tournament) {
+        if (isRoomHost(room)) hostBroadcastDrive(room);
+        startBroadcastTimer();
+      } else stopBroadcastTimer();
       state.screen = "tourneyWait";
       render();
     }
@@ -2861,6 +2928,90 @@
       return [...list].sort(() => Math.random() - 0.5);
     }
 
+    // ===== Transmissao progressiva do torneio (sala sincronizada; host dirige) =====
+    let broadcastTimer = null, bcOpenedAt = 0;
+
+    function broadcastOrder(tournament) { return tournament ? tournamentMatches(tournament) : []; }
+    function orderIndexOf(order, match) { return order.findIndex(m => m.id === match.id); }
+    function bcMatchHasHuman(match, teams) {
+      return !!((teams[match.home] && teams[match.home].human) || (teams[match.away] && teams[match.away].human));
+    }
+    function bcScorers(team) {
+      const vals = Object.values((team && team.lineup) || {});
+      const off = vals.filter(p => ["CA", "PE", "PD", "MEI", "MC"].includes(p.natural));
+      return off.length ? off : vals;
+    }
+    function buildBroadcastEvents(match, teams) {
+      const home = teams[match.home] || {}, away = teams[match.away] || {};
+      const hs = bcScorers(home), as = bcScorers(away);
+      const events = [];
+      for (let i = 0; i < match.hg; i++) events.push({ minute: clamp(8 + Math.round(Math.random() * 78), 3, 89), side: "home", text: `${(randomItem(hs) || {}).name || shortTeamName(home)} marca pra ${shortTeamName(home)}.` });
+      for (let i = 0; i < match.ag; i++) events.push({ minute: clamp(8 + Math.round(Math.random() * 78), 4, 90), side: "away", text: `${(randomItem(as) || {}).name || shortTeamName(away)} marca pra ${shortTeamName(away)}.` });
+      if (match.hg + match.ag === 0) { events.push({ minute: 41, side: "note", text: "Jogo truncado, poucas chances." }); events.push({ minute: 78, side: "note", text: "As defesas mandam bem." }); }
+      events.push({ minute: 90, side: "end", text: match.penalties ? `Fim: ${match.hg}-${match.ag}. Penaltis ${match.penalties}, ${shortTeamName(teams[match.winner] || {})} passa.` : `Fim de jogo: ${match.hg}-${match.ag}.` });
+      return events.sort((a, b) => a.minute - b.minute);
+    }
+    // placar revelado ate evIndex (contando so os lances de gol ja mostrados)
+    function bcScoreAt(events, evIndex) {
+      let h = 0, a = 0;
+      (events || []).slice(0, evIndex).forEach(e => { if (e.side === "home") h++; if (e.side === "away") a++; });
+      return { h, a };
+    }
+    // estado de revelacao de um jogo: 'done' (placar liberado), 'live' (em transmissao), 'hidden'
+    function bcReveal(order, b, match) {
+      if (b.done) return "done";
+      const idx = orderIndexOf(order, match);
+      if (idx < (b.index || 0)) return "done";
+      if (idx === (b.index || 0)) return "live";
+      return "hidden";
+    }
+
+    // ---- host: dirige a transmissao (init, abre jogo, avanca CPU, auto) ----
+    function hostBroadcastDrive(room) {
+      if (!isRoomHost(room) || room.status !== "running" || !room.tournament) return;
+      const code = state.net.code;
+      let b = room.broadcast;
+      if (!b) { window.RC_NET.patch(code, { broadcast: { index: 0, openedIndex: -1, evIndex: 0, events: [], auto: false, done: false } }); return; }
+      if (b.done) return;
+      const order = broadcastOrder(room.tournament);
+      if ((b.index || 0) >= order.length) { window.RC_NET.setBroadcast(code, { done: true }); return; }
+      const match = order[b.index || 0];
+      if (b.openedIndex !== b.index) {
+        const human = bcMatchHasHuman(match, room.teams || {});
+        bcOpenedAt = Date.now();
+        window.RC_NET.setBroadcast(code, { openedIndex: b.index, evIndex: 0, events: human ? buildBroadcastEvents(match, room.teams || {}) : [] });
+        return;
+      }
+      const human = bcMatchHasHuman(match, room.teams || {});
+      if (!human) { if (Date.now() - bcOpenedAt > 2200) hostBroadcastNext(room); return; }
+      if (b.auto) {
+        if ((b.evIndex || 0) < (b.events || []).length) window.RC_NET.setBroadcast(code, { evIndex: (b.evIndex || 0) + 1 });
+        else hostBroadcastNext(room); // fim do jogo humano no auto -> proximo
+      }
+    }
+
+    function hostBroadcastNext(room) {
+      const order = broadcastOrder(room.tournament);
+      const b = room.broadcast || {};
+      const next = (b.index || 0) + 1;
+      window.RC_NET.setBroadcast(state.net.code, next >= order.length ? { index: next, done: true } : { index: next });
+    }
+
+    function startBroadcastTimer() { if (!broadcastTimer) broadcastTimer = window.setInterval(broadcastTick, 900); }
+    function stopBroadcastTimer() { if (broadcastTimer) { window.clearInterval(broadcastTimer); broadcastTimer = null; } }
+    function broadcastTick() {
+      if (state.screen !== "tourneyWait") { stopBroadcastTimer(); return; }
+      const room = tdRoom();
+      if (room && isRoomHost(room)) { hostBroadcastDrive(room); render(); }
+      else render(); // guests: so re-renderiza pro cronometro/estado
+    }
+
+    // ---- controles do host (so aparecem pra ele, em jogo com humano) ----
+    function bcLance() { const r = tdRoom(); const b = r && r.broadcast; if (!b) return; window.RC_NET.setBroadcast(state.net.code, { evIndex: Math.min((b.evIndex || 0) + 1, (b.events || []).length), auto: false }); }
+    function bcAuto() { const r = tdRoom(); const b = r && r.broadcast; if (!b) return; window.RC_NET.setBroadcast(state.net.code, { auto: !b.auto }); }
+    function bcPular() { const r = tdRoom(); const b = r && r.broadcast; if (!b) return; window.RC_NET.setBroadcast(state.net.code, { evIndex: (b.events || []).length, auto: false }); }
+    function bcProximo() { const r = tdRoom(); if (r) hostBroadcastNext(r); }
+
     // ---- cartas ----
     function tdUseBloqueio(playerId) {
       const r = tdRoom(); if (!r || !tdIsMyTurn()) return;
@@ -3093,6 +3244,7 @@
 
     function leaveTournament() {
       stopDraftTimer();
+      stopBroadcastTimer();
       state.tdCard = null; state.tdSelected = null;
       const code = state.tourney && state.tourney.code;
       state.tourney = null;
@@ -3135,69 +3287,124 @@
     }
 
     function renderTournamentView(room, tournament, teams) {
-      const champion = tournament.champion && teams[tournament.champion];
-      const totalMatches = tournamentMatchCount(tournament);
+      const order = broadcastOrder(tournament);
+      const b = room.broadcast || { index: 0, evIndex: 0, events: [], done: false };
       const mine = teams[clientId] ? clientId : null;
-      const myMatches = tournamentMatches(tournament).filter(match => match.home === mine || match.away === mine);
-      el.tourneyWaitHint.textContent = `${tournament.totalTeams || Object.keys(teams).length} times`;
-      el.tourneyWaitStatus.textContent = champion
-        ? `Campeao: ${teamDisplayName(champion)}. ${totalMatches} jogos simulados pelo anfitriao.`
-        : "Torneio em andamento.";
-      el.tourneyTeams.innerHTML = `
-        <div class="tourney-summary">
-          <div class="metric"><strong>${tournament.totalTeams || Object.keys(teams).length}</strong><span>times</span></div>
-          <div class="metric"><strong>${totalMatches}</strong><span>jogos</span></div>
-          <div class="metric"><strong>${champion ? escapeHtml(shortTeamName(champion)) : "--"}</strong><span>campeao</span></div>
-        </div>
-        ${myMatches.length ? `<div class="tourney-section">
-          <div class="tourney-title-row"><span>Seus jogos</span><span>${myMatches.length}</span></div>
-          <div class="match-list">${myMatches.map(match => renderMatchRow(match, teams, mine)).join("")}</div>
-        </div>` : ""}
-        ${tournament.groups ? renderGroups(tournament.groups, teams, mine) : ""}
-        ${tournament.bracket ? renderBracket(tournament.bracket, teams, mine) : ""}
-      `;
+      const total = tournament.totalTeams || Object.keys(teams).length;
+      const revealed = b.done ? order.length : (b.index || 0);
+      const champ = b.done && tournament.champion ? teams[tournament.champion] : null;
+      const myMatches = order.filter(m => m.home === mine || m.away === mine);
+
+      el.tourneyWaitHint.textContent = `${total} times`;
+      el.tourneyWaitStatus.textContent = champ
+        ? `Campeao: ${teamDisplayName(champ)}!`
+        : `Transmissao ao vivo — ${revealed}/${order.length} jogos.`;
+
+      el.tourneyTeams.innerHTML =
+        renderBroadcastCentral(room, tournament, teams, order, b, mine)
+        + (champ ? `<div class="tourney-summary"><div class="metric"><strong>${escapeHtml(shortTeamName(champ))}</strong><span>CAMPEAO</span></div></div>` : "")
+        + (myMatches.length ? `<div class="tourney-section"><div class="tourney-title-row"><span>Seus jogos</span><span>${myMatches.length}</span></div><div class="match-list">${myMatches.map(m => renderMatchRow(m, teams, mine, bcReveal(order, b, m))).join("")}</div></div>` : "")
+        + (tournament.groups ? renderGroups(tournament.groups, teams, mine, order, b) : "")
+        + (tournament.bracket ? renderBracket(tournament.bracket, teams, mine, order, b) : "");
+
+      wireBroadcastControls(room, order);
     }
 
-    function renderGroups(groups, teams, mine) {
-      return groups.map(group => `
-        <div class="tourney-section">
-          <div class="tourney-title-row"><span>Grupo ${group.name}</span><span>${group.matches.length} jogos</span></div>
+    function renderBroadcastCentral(room, tournament, teams, order, b, mine) {
+      if (b.done || (b.index || 0) >= order.length) {
+        return `<section class="bc-central"><div class="bc-live">TRANSMISSAO ENCERRADA</div><div class="bc-timeline"><div class="empty-state">Todos os jogos foram revelados.</div></div></section>`;
+      }
+      const match = order[b.index];
+      const home = teams[match.home] || {}, away = teams[match.away] || {};
+      const human = bcMatchHasHuman(match, teams);
+      const score = human ? bcScoreAt(b.events, b.evIndex || 0) : { h: match.hg, a: match.ag };
+      const atEnd = human && (b.evIndex || 0) >= (b.events || []).length;
+      const isHost = isRoomHost(room);
+      const mineMatch = match.home === mine || match.away === mine;
+      const evShown = human ? (b.events || []).slice(0, b.evIndex || 0) : [];
+      const timeline = human
+        ? (evShown.length ? evShown.map(e => `<div class="event"><span class="event-minute">${e.minute}'</span><span class="event-text">${escapeHtml(e.text)}</span></div>`).join("") : `<div class="empty-state">A bola vai rolar...</div>`)
+        : `<div class="empty-state">Jogo entre CPUs — revelando rapido...</div>`;
+      let controls = "";
+      if (isHost && human) {
+        controls = `<div class="bc-controls">
+          <button class="secondary-action" id="bcAutoBtn" type="button">${b.auto ? "Pausar" : "Auto"}</button>
+          <button class="tertiary-action" id="bcPularBtn" type="button">Pular</button>
+          <button class="primary-action" id="bcMainBtn" type="button">${atEnd ? "Proximo" : "Lance"}</button>
+        </div>`;
+      } else if (isHost) {
+        controls = `<div class="bc-controls"><button class="primary-action" id="bcMainBtn" type="button">Proximo</button></div>`;
+      } else {
+        controls = `<div class="sync-line">O anfitriao controla a transmissao.</div>`;
+      }
+      return `<section class="bc-central ${mineMatch ? "is-mine" : ""}">
+        <div class="bc-live">${human ? "AO VIVO" : "RAPIDO"} · ${escapeHtml(match.stage)}</div>
+        <div class="bc-score">
+          <span class="bc-team">${escapeHtml(shortTeamName(home))}</span>
+          <strong class="bc-goals">${score.h}-${score.a}</strong>
+          <span class="bc-team">${escapeHtml(shortTeamName(away))}</span>
+        </div>
+        <div class="bc-timeline">${timeline}</div>
+        ${controls}
+      </section>`;
+    }
+
+    function wireBroadcastControls(room, order) {
+      const main = document.getElementById("bcMainBtn");
+      if (main) main.onclick = () => {
+        const r = tdRoom(); const bb = (r && r.broadcast) || {};
+        const match = order[bb.index || 0];
+        const human = match && bcMatchHasHuman(match, (r && r.teams) || {});
+        if (human && (bb.evIndex || 0) < (bb.events || []).length) bcLance();
+        else bcProximo();
+      };
+      const auto = document.getElementById("bcAutoBtn"); if (auto) auto.onclick = bcAuto;
+      const pular = document.getElementById("bcPularBtn"); if (pular) pular.onclick = bcPular;
+    }
+
+    function renderGroups(groups, teams, mine, order, b) {
+      const advance = cfgOr(state.net.room.config).advance;
+      return groups.map(group => {
+        const revealedMatches = group.matches.filter(m => bcReveal(order, b, m) === "done");
+        const groupDone = group.matches.every(m => bcReveal(order, b, m) === "done");
+        const table = rankGroup(group.teamIds, revealedMatches, teams, advance);
+        return `<div class="tourney-section">
+          <div class="tourney-title-row"><span>Grupo ${group.name}</span><span>${revealedMatches.length}/${group.matches.length}</span></div>
           <div class="standings-table">
-            ${group.table.map((row, index) => `
-              <div class="standing-row ${row.qualified ? "is-qualified" : ""}">
+            ${table.map((row, index) => `
+              <div class="standing-row ${groupDone && row.qualified ? "is-qualified" : ""}">
                 <span>${index + 1}</span>
                 <strong>${escapeHtml(shortTeamName(teams[row.id]))}${row.id === mine ? " (voce)" : ""}</strong>
                 <span>${row.pts} pts</span>
                 <span>${row.gd >= 0 ? "+" : ""}${row.gd}</span>
-              </div>
-            `).join("")}
+              </div>`).join("")}
           </div>
-          <div class="match-list">${group.matches.map(match => renderMatchRow(match, teams, mine)).join("")}</div>
-        </div>
-      `).join("");
+          <div class="match-list">${group.matches.map(m => renderMatchRow(m, teams, mine, bcReveal(order, b, m))).join("")}</div>
+        </div>`;
+      }).join("");
     }
 
-    function renderBracket(bracket, teams, mine) {
+    function renderBracket(bracket, teams, mine, order, b) {
       return `<div class="tourney-section">
         <div class="tourney-title-row"><span>Chave</span><span>${bracket.rounds.length} fases</span></div>
         <div class="bracket-list">
           ${bracket.rounds.map(round => `
             <div class="bracket-round">
               <div class="tourney-title-row"><span>${round.name}</span><span>${round.matches.length}</span></div>
-              ${round.matches.map(match => renderMatchRow(match, teams, mine)).join("")}
-            </div>
-          `).join("")}
+              ${round.matches.map(m => renderMatchRow(m, teams, mine, bcReveal(order, b, m))).join("")}
+            </div>`).join("")}
         </div>
       </div>`;
     }
 
-    function renderMatchRow(match, teams, mine) {
+    function renderMatchRow(match, teams, mine, reveal) {
       const mineClass = match.home === mine || match.away === mine ? "is-mine" : "";
-      return `<div class="match-row ${mineClass}">
-        <span>${escapeHtml(shortTeamName(teams[match.home]))}</span>
-        <span class="match-score"><span>${match.hg}-${match.ag}</span>${match.penalties ? `<small>pen ${match.penalties}</small>` : ""}</span>
-        <span class="team-b">${escapeHtml(shortTeamName(teams[match.away]))}</span>
-      </div>`;
+      const hName = reveal === "hidden" ? "?" : escapeHtml(shortTeamName(teams[match.home]));
+      const aName = reveal === "hidden" ? "?" : escapeHtml(shortTeamName(teams[match.away]));
+      const mid = reveal === "done"
+        ? `<span>${match.hg}-${match.ag}</span>${match.penalties ? `<small>pen ${match.penalties}</small>` : ""}`
+        : reveal === "live" ? `<span class="bc-livechip">ao vivo</span>` : `<span>vs</span>`;
+      return `<div class="match-row ${mineClass}"><span>${hName}</span><span class="match-score">${mid}</span><span class="team-b">${aName}</span></div>`;
     }
 
     function tournamentMatches(tournament) {
@@ -4404,6 +4611,9 @@
       },
       setDraft(code, p) {
         return update(ref(db, "rooms/" + code + "/draft"), p);
+      },
+      setBroadcast(code, p) {
+        return update(ref(db, "rooms/" + code + "/broadcast"), p);
       },
       setTeamField(code, teamId, p) {
         return update(ref(db, "rooms/" + code + "/teams/" + teamId), p);
