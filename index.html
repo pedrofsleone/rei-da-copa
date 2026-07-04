@@ -990,6 +990,10 @@
       grid-template-columns: 1fr 1fr 1fr;
     }
 
+    .action-bar.is-single {
+      grid-template-columns: 1fr;
+    }
+
     .primary-action,
     .secondary-action,
     .tertiary-action {
@@ -2265,7 +2269,17 @@
     }
 
     function tdRoll() { if (!tdIsMyTurn()) return; state.draw = rollSquad(); state.rerolls = 3; state.tdSelected = null; render(); }
-    function tdReroll() { if (!tdIsMyTurn() || !state.draw || state.rerolls <= 0) return; state.rerolls--; state.draw = rollSquad({ notCountry: state.draw.country }); state.tdSelected = null; render(); }
+    function tdReroll(type) {
+      if (!tdIsMyTurn() || !state.draw || state.rerolls <= 0) return;
+      const current = state.draw;
+      const next = rerollSquadFor(current, type);
+      if (!next) return;
+      state.rerolls--;
+      state.draw = next;
+      state.tdSelected = null;
+      showToast(`${3 - state.rerolls}/3 troca usada.`);
+      render();
+    }
 
     // Tocar num jogador: seleciona-o. As vagas compativeis acendem no mini campo pra voce tocar onde por.
     function tdSelectPlayer(playerId) {
@@ -2732,9 +2746,14 @@
       }
       const draw = state.draw;
       el.tdPickHint.textContent = state.tdSelected ? "Toque na vaga do campo" : `${draw.country} ${draw.year}`;
-      el.tdDrawCard.innerHTML = `<div class="td-draw-head"><strong>${draw.country} ${draw.year}</strong>
-        <button class="small-action" id="tdRerollBtn" type="button" ${state.rerolls <= 0 ? "disabled" : ""}>Outra (${state.rerolls})</button></div>`;
-      el.tdDrawCard.querySelector("#tdRerollBtn").onclick = tdReroll;
+      el.tdDrawCard.innerHTML = `<div class="td-draw-head"><strong>${draw.country} ${draw.year}</strong></div>
+        <div class="reroll-row">
+          <button class="small-action" type="button" data-td-reroll="team" ${state.rerolls ? "" : "disabled"}>Trocar selecao</button>
+          <button class="small-action" type="button" data-td-reroll="year" ${state.rerolls ? "" : "disabled"}>Trocar ano</button>
+        </div>`;
+      el.tdDrawCard.querySelectorAll("[data-td-reroll]").forEach(button => {
+        button.addEventListener("click", () => tdReroll(button.dataset.tdReroll));
+      });
       el.tdPlayerList.innerHTML = draw.players.map(p => {
         const avail = tdAvailable(p, myTeam, taken);
         const selected = state.tdSelected === p.id;
@@ -3176,6 +3195,17 @@
       return randomItem(pool);
     }
 
+    function rerollSquadFor(current, type) {
+      const pool = type === "year"
+        ? squads.filter(squad => squad.country === current.country && squad.key !== current.key)
+        : squads.filter(squad => squad.country !== current.country);
+      if (!pool.length) {
+        showToast(type === "year" ? "Essa selecao ainda nao tem outro ano." : "Nao ha outra selecao disponivel.");
+        return null;
+      }
+      return randomItem(pool);
+    }
+
     function setFormation(key) {
       if (!formations[key] || rosterCount() > 0) {
         showToast("A formacao so muda antes do primeiro jogador.");
@@ -3224,13 +3254,11 @@
 
     function reroll(type) {
       if (!state.draw || state.rerolls <= 0) return;
-      state.rerolls -= 1;
       const current = state.draw;
-      if (type === "year") {
-        state.draw = rollSquad({ country: current.country });
-      } else {
-        state.draw = rollSquad({ notCountry: current.country });
-      }
+      const next = rerollSquadFor(current, type);
+      if (!next) return;
+      state.rerolls -= 1;
+      state.draw = next;
       state.selected = null;
       state.lastDrawKey = state.draw.key;
       showToast(`${3 - state.rerolls}/3 troca usada.`);
@@ -3662,7 +3690,7 @@
           <span class="tag">${draw.players.length} jogadores</span>
         </div>
         <div class="reroll-row">
-          <button class="small-action" type="button" data-reroll="team" ${state.rerolls ? "" : "disabled"}>Trocar time</button>
+          <button class="small-action" type="button" data-reroll="team" ${state.rerolls ? "" : "disabled"}>Trocar selecao</button>
           <button class="small-action" type="button" data-reroll="year" ${state.rerolls ? "" : "disabled"}>Trocar ano</button>
         </div>
       `;
@@ -3938,19 +3966,22 @@
       el.actionBar.hidden = noActionBar;
       if (noActionBar) return;
       el.actionBar.classList.toggle("is-match", state.screen === "match");
+      el.actionBar.classList.toggle("is-single", state.screen === "draft" && !!state.draw);
       el.tertiaryAction.hidden = state.screen !== "match";
       if (state.screen === "draft") {
         const complete = isRosterComplete();
         const tour = !!state.tourney;
-        el.secondaryAction.textContent = state.draw ? "Trocar time" : "Limpar";
+        el.secondaryAction.hidden = !!state.draw;
+        el.secondaryAction.textContent = "Limpar";
         el.primaryAction.textContent = complete ? (tour ? "Enviar time" : "Simular Copa") : state.draw ? "Escolha jogador" : "Rolar";
-        el.secondaryAction.disabled = state.draw ? state.rerolls <= 0 : rosterCount() === 0;
+        el.secondaryAction.disabled = rosterCount() === 0;
         el.tertiaryAction.disabled = true;
         el.primaryAction.disabled = state.draw && !complete;
-        el.secondaryAction.onclick = () => state.draw ? reroll("team") : resetGame();
+        el.secondaryAction.onclick = resetGame;
         el.tertiaryAction.onclick = null;
         el.primaryAction.onclick = () => complete ? (tour ? submitTournamentTeam() : startSimulation()) : newDraw();
       } else if (state.screen === "match") {
+        el.secondaryAction.hidden = false;
         const match = state.campaign[state.matchIndex];
         const atEnd = match && state.eventIndex >= match.events.length;
         const penaltyBreak = isPenaltyBreak(match, currentBreakEvent());
@@ -3965,6 +3996,7 @@
         el.primaryAction.onclick = penaltyBreak ? () => { resolveShootout(match); render(); } : advanceMatch;
       } else {
         stopAuto();
+        el.secondaryAction.hidden = false;
         el.secondaryAction.textContent = "Compartilhar";
         el.primaryAction.textContent = "Jogar de novo";
         el.secondaryAction.disabled = false;
