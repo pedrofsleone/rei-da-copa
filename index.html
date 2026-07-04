@@ -1308,6 +1308,18 @@
       </section>
     </section>
 
+    <section class="view" id="tourneyWaitView" aria-label="Torneio">
+      <button class="multi-back" id="tourneyLeaveBtn" type="button">← Sair do torneio</button>
+      <section class="panel panel-pad">
+        <div class="section-head">
+          <h1 class="section-title">Torneio</h1>
+          <span class="hint" id="tourneyWaitHint">Montando os times</span>
+        </div>
+        <div class="sync-line" id="tourneyWaitStatus"></div>
+        <div class="lobby-players" id="tourneyTeams"></div>
+      </section>
+    </section>
+
     <div class="action-bar" id="actionBar">
       <button class="secondary-action" id="secondaryAction" type="button">Trocar time</button>
       <button class="tertiary-action" id="tertiaryAction" type="button" hidden>Pular</button>
@@ -1648,10 +1660,11 @@
       final: null,
       lastDrawKey: null,
       autoRunning: false,
-      // Multiplayer (online 1x1). preenchido ao entrar numa sala.
+      // Multiplayer. preenchido ao entrar numa sala.
       nickname: "",
       returnScreen: "draft",
-      net: null
+      net: null,
+      tourney: null
     };
 
     const el = {
@@ -1713,7 +1726,12 @@
       lobbyPlayers: document.getElementById("lobbyPlayers"),
       readyBtn: document.getElementById("readyBtn"),
       startBtn: document.getElementById("startBtn"),
-      lobbyStatus: document.getElementById("lobbyStatus")
+      lobbyStatus: document.getElementById("lobbyStatus"),
+      tourneyWaitView: document.getElementById("tourneyWaitView"),
+      tourneyLeaveBtn: document.getElementById("tourneyLeaveBtn"),
+      tourneyWaitHint: document.getElementById("tourneyWaitHint"),
+      tourneyWaitStatus: document.getElementById("tourneyWaitStatus"),
+      tourneyTeams: document.getElementById("tourneyTeams")
     };
 
     let autoTimer = null;
@@ -1752,6 +1770,7 @@
     });
 
     function goHome() {
+      if (state.tourney) { leaveTournament(); return; }
       stopAuto();
       state.screen = "home";
       render();
@@ -1770,8 +1789,9 @@
     el.joinRoomBtn.addEventListener("click", () => handleRoomAction("join"));
     el.lobbyLeaveBtn.addEventListener("click", () => leaveLobby(false));
     el.readyBtn.addEventListener("click", toggleReady);
-    el.startBtn.addEventListener("click", startMatch);
+    el.startBtn.addEventListener("click", startTournament);
     el.copyCodeBtn.addEventListener("click", copyRoomCode);
+    el.tourneyLeaveBtn.addEventListener("click", leaveTournament);
 
     function openMulti() {
       stopAuto();
@@ -1819,9 +1839,38 @@
       if (!state.net) return;
       if (room === null) { showToast("A sala foi encerrada."); leaveLobby(true); return; }
       state.net.room = room;
-      if (state.screen === "multiLobby") renderMultiLobby();
+      routeTournament(room);
     }
     window.onRoomUpdate = onRoomUpdate;
+
+    // Roteia a tela conforme o status da sala (reativo a mudancas do host no RTDB).
+    function routeTournament(room) {
+      const st = room.status || "lobby";
+      if (st === "lobby") {
+        state.tourney = null;
+        state.screen = "multiLobby";
+        render();
+        return;
+      }
+      if (st === "drafting") {
+        const myTeam = room.teams && room.teams[clientId];
+        const amHuman = room.players && room.players[clientId];
+        if ((myTeam && myTeam.submitted) || !amHuman) {
+          state.tourney = state.tourney || { code: state.net.code };
+          state.screen = "tourneyWait";
+          render();
+        } else if (!state.tourney) {
+          enterTournamentDraft();   // entra no draft (reseta o elenco) so uma vez
+        } else {
+          render();                 // ja draftando: so re-renderiza
+        }
+        return;
+      }
+      // running / done -> Fase D (por enquanto, tela de espera)
+      state.tourney = state.tourney || { code: state.net.code };
+      state.screen = "tourneyWait";
+      render();
+    }
     // chamado pelo modulo de rede quando o Firebase termina de carregar
     window.renderIfMulti = () => {
       if (state.screen === "multiHome" || state.screen === "multiLobby") render();
@@ -1843,7 +1892,44 @@
       window.RC_NET.setReady(net.code, clientId, !(me && me.ready));
     }
 
-    function startMatch() {
+    const CPU_NAMES = ["Holanda", "Italia", "Portugal", "Uruguai", "Mexico", "Croacia", "Belgica", "Colombia", "Nigeria", "Japao", "Coreia", "Chile", "Ghana", "Camaroes", "Senegal", "Marrocos", "Suecia", "Dinamarca", "Polonia", "Escocia", "EUA", "Australia", "Equador", "Peru", "Turquia", "Egito", "Serbia", "Suica", "Austria", "Gales", "Ira", "Catar"];
+
+    function avgRatingByPos(lineup, positions) {
+      const vals = Object.values(lineup).filter(p => positions.includes(p.natural));
+      if (!vals.length) return 80;
+      return Math.round(vals.reduce((s, p) => s + p.rating, 0) / vals.length);
+    }
+
+    // Monta um time de CPU. Cada CPU tem um "nivel" alvo (tier) pra variar a forca entre os times.
+    function autoBuildTeam(name) {
+      const form = formations["4-3-3"];
+      const pool = squads.flatMap(s => s.players.map(p => ({ id: p.id, short: p.short, name: p.name, positions: p.positions, rating: p.rating })));
+      const tier = 76 + Math.floor(Math.random() * 17); // 76..92
+      const used = new Set();
+      const lineup = {};
+      form.slots.forEach(slot => {
+        let fit = pool.filter(p => !used.has(p.id) && p.positions.includes(slot.pos));
+        if (!fit.length) fit = pool.filter(p => !used.has(p.id));
+        // prioriza quem esta mais perto do nivel-alvo, com um jitter aleatorio
+        fit.sort((a, b) => (Math.abs(a.rating - tier) + Math.random() * 4) - (Math.abs(b.rating - tier) + Math.random() * 4));
+        const pick = fit[0];
+        if (pick) { used.add(pick.id); lineup[slot.id] = { id: pick.id, short: pick.short, name: pick.name, natural: slot.pos, rating: pick.rating }; }
+      });
+      const vals = Object.values(lineup);
+      const overall = Math.round(vals.reduce((s, p) => s + p.rating, 0) / Math.max(1, vals.length));
+      const captain = [...vals].sort((a, b) => b.rating - a.rating)[0];
+      return {
+        name, human: null, submitted: true,
+        overall,
+        attack: avgRatingByPos(lineup, ["PE", "CA", "PD", "MEI"]),
+        defense: avgRatingByPos(lineup, ["GOL", "LD", "ZAG", "LE", "VOL"]),
+        captainId: captain ? captain.id : null,
+        lineup
+      };
+    }
+
+    // Host inicia o torneio: cria os slots de times (humanos vazios + CPUs prontos) e vai pro draft.
+    function startTournament() {
       const net = state.net;
       if (!net || !net.room) return;
       const players = net.room.players || {};
@@ -1853,8 +1939,89 @@
       const allReady = ids.length >= 1 && ids.every(id => players[id].ready);
       if (!allReady) { showToast("Todos precisam ficar prontos."); return; }
       if (c.fill === "humanos" && ids.length < teams) { showToast(`Faltam ${teams - ids.length} jogadores.`); return; }
-      // Fase C (montar os times / draft) entra aqui na proxima etapa.
-      showToast("Montar os times (Fase C) chega na proxima etapa.");
+      const teamObj = {};
+      ids.forEach(id => { teamObj[id] = { name: (players[id].apelido || "Jogador") + " FC", apelido: players[id].apelido || "Jogador", human: id, submitted: false }; });
+      const cpuNeeded = c.fill === "cpu" ? Math.max(0, teams - ids.length) : 0;
+      const shuffledNames = [...CPU_NAMES].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < cpuNeeded; i++) {
+        teamObj["cpu" + i] = autoBuildTeam(shuffledNames[i % shuffledNames.length] || ("CPU " + (i + 1)));
+      }
+      window.RC_NET.startTournament(net.code, teamObj);
+    }
+
+    function enterTournamentDraft() {
+      state.tourney = { code: state.net.code };
+      stopAuto();
+      state.draw = null;
+      state.selected = null;
+      state.rerolls = 3;
+      state.formation = "4-3-3";
+      slots = formations["4-3-3"].slots;
+      state.lineup = Object.fromEntries(slots.map(slot => [slot.id, null]));
+      state.bench = Object.fromEntries(benchSlots.map(slot => [slot.id, null]));
+      state.captainId = null;
+      state.penaltyOrder = [];
+      state.screen = "draft";
+      render();
+    }
+
+    function submitTournamentTeam() {
+      if (!state.tourney) return;
+      if (!isRosterComplete()) { showToast("Complete 11 titulares e 2 reservas."); return; }
+      if (!state.captainId) state.captainId = strongestPlayers(filledPlayers(), 1)[0]?.id || null;
+      const lineup = {};
+      slots.forEach(slot => {
+        const p = state.lineup[slot.id];
+        if (p) lineup[slot.id] = { id: p.id, short: p.short, name: p.name, natural: p.natural || slot.pos, rating: p.rating };
+      });
+      const summary = {
+        name: state.teamName, apelido: state.nickname, human: clientId, submitted: true,
+        overall: teamOverall(),
+        attack: lineAverage(["PE", "CA", "PD", "MEI"]),
+        defense: lineAverage(["GOL", "LD", "ZAG", "LE", "VOL"]),
+        captainId: state.captainId,
+        lineup
+      };
+      window.RC_NET.setTeam(state.tourney.code, clientId, summary);
+      showToast("Time enviado!");
+      state.screen = "tourneyWait";
+      render();
+    }
+
+    function leaveTournament() {
+      const code = state.tourney && state.tourney.code;
+      state.tourney = null;
+      if (code && netReady()) window.RC_NET.leave(code, clientId);
+      state.net = null;
+      state.screen = "home";
+      showToast("Voce saiu do torneio.");
+      render();
+    }
+
+    function renderTourneyWait() {
+      const room = state.net && state.net.room;
+      if (!room) return;
+      const teams = room.teams || {};
+      const tids = Object.keys(teams);
+      const humanTeams = tids.filter(id => teams[id].human);
+      const humanDone = humanTeams.filter(id => teams[id].submitted).length;
+      const allDone = humanTeams.length > 0 && humanDone === humanTeams.length;
+
+      el.tourneyWaitHint.textContent = `${tids.length} times`;
+      el.tourneyWaitStatus.textContent = allDone
+        ? "Todos os times prontos! O torneio (Fase D) chega na proxima etapa."
+        : `Aguardando os times... ${humanDone}/${humanTeams.length} humanos prontos.`;
+
+      el.tourneyTeams.innerHTML = tids.length ? tids.map(id => {
+        const t = teams[id];
+        const isMe = id === clientId;
+        const kind = t.human ? (isMe ? "Voce" : "Humano") : "CPU";
+        return `<div class="lobby-player ${t.submitted ? "is-ready" : ""}">
+          <span class="dot ${t.submitted ? "on" : "off"}"></span>
+          <span class="who">${t.name || "Time"}${t.overall ? " · " + t.overall : ""}</span>
+          <span class="tag">${kind}${t.submitted ? " · pronto" : " · montando"}</span>
+        </div>`;
+      }).join("") : `<div class="empty-state">Montando os times...</div>`;
     }
 
     function copyRoomCode() {
@@ -2497,6 +2664,7 @@
       if (state.screen === "final") renderFinal();
       if (state.screen === "multiHome") renderMultiHome();
       if (state.screen === "multiLobby") renderMultiLobby();
+      if (state.screen === "tourneyWait") renderTourneyWait();
       renderActions();
     }
 
@@ -2509,8 +2677,10 @@
       if (el.statusStrip) el.statusStrip.hidden = !showPills;
       el.stageLabel.textContent = state.screen === "home"
         ? "Inicio"
+        : state.screen === "tourneyWait"
+          ? "Torneio"
         : state.screen === "draft"
-          ? `${state.formation} - ${state.teamName}`
+          ? (state.tourney ? `Seu time · ${state.formation}` : `${state.formation} - ${state.teamName}`)
           : state.screen === "match"
             ? "Central da partida"
             : state.screen === "multiHome"
@@ -2527,9 +2697,11 @@
       el.finalView.classList.toggle("is-active", state.screen === "final");
       el.multiHomeView.classList.toggle("is-active", state.screen === "multiHome");
       el.multiLobbyView.classList.toggle("is-active", state.screen === "multiLobby");
+      el.tourneyWaitView.classList.toggle("is-active", state.screen === "tourneyWait");
     }
 
     function renderDraft() {
+      el.draftHomeBtn.textContent = state.tourney ? "← Sair do torneio" : "← Inicio";
       renderSetup();
       renderDraw();
       renderPlayers();
@@ -2845,21 +3017,22 @@
 
     function renderActions() {
       // Home e telas de multiplayer tem navegacao propria; esconde a barra de acao padrao.
-      const noActionBar = state.screen === "home" || state.screen === "multiHome" || state.screen === "multiLobby";
+      const noActionBar = state.screen === "home" || state.screen === "multiHome" || state.screen === "multiLobby" || state.screen === "tourneyWait";
       el.actionBar.hidden = noActionBar;
       if (noActionBar) return;
       el.actionBar.classList.toggle("is-match", state.screen === "match");
       el.tertiaryAction.hidden = state.screen !== "match";
       if (state.screen === "draft") {
         const complete = isRosterComplete();
+        const tour = !!state.tourney;
         el.secondaryAction.textContent = state.draw ? "Trocar time" : "Limpar";
-        el.primaryAction.textContent = complete ? "Simular Copa" : state.draw ? "Escolha jogador" : "Rolar";
+        el.primaryAction.textContent = complete ? (tour ? "Enviar time" : "Simular Copa") : state.draw ? "Escolha jogador" : "Rolar";
         el.secondaryAction.disabled = state.draw ? state.rerolls <= 0 : rosterCount() === 0;
         el.tertiaryAction.disabled = true;
         el.primaryAction.disabled = state.draw && !complete;
         el.secondaryAction.onclick = () => state.draw ? reroll("team") : resetGame();
         el.tertiaryAction.onclick = null;
-        el.primaryAction.onclick = () => complete ? startSimulation() : newDraw();
+        el.primaryAction.onclick = () => complete ? (tour ? submitTournamentTeam() : startSimulation()) : newDraw();
       } else if (state.screen === "match") {
         const match = state.campaign[state.matchIndex];
         const atEnd = match && state.eventIndex >= match.events.length;
@@ -2992,6 +3165,13 @@
       setConfig(code, patch) {
         // merge dentro de /config (mantem os outros campos)
         return update(ref(db, "rooms/" + code + "/config"), patch);
+      },
+      startTournament(code, teams) {
+        // host cria os slots de times (humanos + CPU) e muda o status
+        return update(roomRef(code), { status: "drafting", teams });
+      },
+      setTeam(code, teamId, team) {
+        return set(ref(db, "rooms/" + code + "/teams/" + teamId), team);
       },
       setStatus(code, status) {
         return update(roomRef(code), { status });
