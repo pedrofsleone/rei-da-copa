@@ -469,9 +469,9 @@
     .td-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 
     .td-chip {
-      font-size: 10px;
-      font-weight: 800;
-      padding: 3px 6px;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 7px;
       border-radius: 6px;
       background: oklch(0.22 0.03 235);
       color: var(--ink);
@@ -498,6 +498,44 @@
       border-top: 1px dashed oklch(0.92 0.03 150 / 0.28);
       padding-top: 6px;
       gap: 14px;
+    }
+
+    .td-public-field {
+      min-height: 220px;
+      margin-top: 10px;
+      border-radius: 12px;
+      padding: 12px 8px;
+      gap: 7px;
+    }
+
+    .td-public-field::before {
+      inset: 8px;
+      border-radius: 8px;
+    }
+
+    .td-public-field .midline {
+      left: 8px;
+      right: 8px;
+    }
+
+    .td-public-field .circle {
+      width: 76px;
+      height: 76px;
+    }
+
+    .td-public-field .field-row {
+      gap: 4px;
+    }
+
+    .td-public-field .slot {
+      width: 38px;
+      height: 38px;
+      font-size: 9px;
+    }
+
+    .td-public-field .td-bench-row {
+      gap: 8px;
+      padding-top: 4px;
     }
 
     .lobby-player {
@@ -927,6 +965,7 @@
       border-color: oklch(0.92 0.02 150);
       background: oklch(0.94 0.02 150);
       color: var(--primary-dark);
+      font-size: 10px;
     }
 
     .slot.is-compatible {
@@ -2882,7 +2921,7 @@
         const p = group === "bench" ? bench[slot.id] : lineup[slot.id];
         const prot = p && team.protectedId === p.id;
         const compatible = sel && !p && (group === "bench" ? true : sel.positions.includes(slot.pos));
-        const label = p ? (p.short + (prot ? " 🛡" : "")) : (group === "bench" ? "Banco" : slot.pos);
+        const label = p ? (draftPlayerLabel(p) + (prot ? " 🛡" : "")) : (group === "bench" ? "Banco" : slot.pos);
         if (compatible) return `<button class="slot is-compatible" type="button" data-tdslot="${slot.id}" data-tdgroup="${group}" data-tdpos="${slot.pos}">${label}</button>`;
         return `<div class="slot ${p ? "is-filled" : ""} ${prot ? "is-protected" : ""}">${label}</div>`;
       };
@@ -2893,6 +2932,10 @@
         el.tdField.querySelectorAll("[data-tdslot]").forEach(b => b.onclick = () =>
           tdPlacePick(sel, { group: b.dataset.tdgroup, slotId: b.dataset.tdslot, pos: b.dataset.tdgroup === "bench" ? "Banco" : b.dataset.tdpos }));
       }
+    }
+
+    function draftPlayerLabel(player) {
+      return `${player.short} ${player.rating || "--"}`;
     }
 
     function renderTdPick(r, myTeam) {
@@ -2939,14 +2982,13 @@
         const t = teams[id] || {};
         const isMe = id === clientId;
         const active = tdActive(d) === id;
-        const entries = [];
-        ["lineup", "bench"].forEach(g => { const grp = t[g] || {}; for (const s in grp) if (grp[s]) entries.push({ p: grp[s], g, s }); });
+        const entries = tdTeamEntries(t);
         entries.sort((a, b) => (a.p.seq || 0) - (b.p.seq || 0));
-        const maxSeq = entries.reduce((m, e) => Math.max(m, e.p.seq || 0), 0);
+        const hiddenSeq = tdHiddenSeq(entries, isMe, d);
         const chips = entries.map(e => {
-          const hide = !isMe && !d.done && e.p.seq === maxSeq;
+          const hide = e.p.seq === hiddenSeq;
           const prot = isMe && t.protectedId === e.p.id;
-          const label = hide ? "???" : (e.p.short + (prot ? " 🛡" : ""));
+          const label = hide ? "???" : (draftPlayerLabel(e.p) + (prot ? " 🛡" : ""));
           let attr = null;
           if (mode === "bloqueio" && isMe) attr = `data-card="bloq" data-pid="${e.p.id}"`;
           else if (mode && mode.step === "give" && isMe) attr = `data-card="give" data-group="${e.g}" data-slot="${e.s}"`;
@@ -2956,11 +2998,46 @@
         return `<div class="td-team ${active ? "is-active" : ""}">
           <div class="td-team-head"><strong>${t.apelido || "?"}${isMe ? " (voce)" : ""}</strong><span>${t.count || 0}/${TROSTER}</span></div>
           <div class="td-chips">${chips || "<span class='td-chip empty'>—</span>"}</div>
+          ${active ? renderTdPublicField(t, d, isMe) : ""}
         </div>`;
       }).join("");
       el.tdBoard.querySelectorAll('[data-card="bloq"]').forEach(b => b.onclick = () => { state.tdCard = null; tdUseBloqueio(b.dataset.pid); });
       el.tdBoard.querySelectorAll('[data-card="give"]').forEach(b => b.onclick = () => { state.tdCard = { step: "take", giveGroup: b.dataset.group, giveSlot: b.dataset.slot }; showToast("Agora toque no jogador do adversario que quer roubar."); render(); });
       el.tdBoard.querySelectorAll('[data-card="take"]').forEach(b => b.onclick = () => { const m = state.tdCard; state.tdCard = null; tdUseTroca(m.giveSlot, m.giveGroup, b.dataset.team, b.dataset.pid); });
+    }
+
+    function tdTeamEntries(team) {
+      const entries = [];
+      ["lineup", "bench"].forEach(g => {
+        const grp = (team && team[g]) || {};
+        for (const s in grp) if (grp[s]) entries.push({ p: grp[s], g, s });
+      });
+      return entries;
+    }
+
+    function tdHiddenSeq(entries, isMe, draft) {
+      if (isMe || draft.done || !entries.length) return null;
+      return entries.reduce((m, e) => Math.max(m, e.p.seq || 0), 0);
+    }
+
+    function renderTdPublicField(team, draft, isMe) {
+      const form = formations[team.formation || "4-3-3"];
+      const rowIds = [...new Set(form.slots.map(s => s.row))].sort((a, b) => a - b);
+      const lineup = team.lineup || {}, bench = team.bench || {};
+      const hiddenSeq = tdHiddenSeq(tdTeamEntries(team), isMe, draft);
+      const slotHtml = (slot, group) => {
+        const p = group === "bench" ? bench[slot.id] : lineup[slot.id];
+        const hidden = p && p.seq === hiddenSeq;
+        const prot = p && isMe && team.protectedId === p.id;
+        const filled = p && !hidden;
+        const label = filled ? `${draftPlayerLabel(p)}${prot ? " 🛡" : ""}` : (group === "bench" ? "Banco" : slot.pos);
+        return `<div class="slot ${filled ? "is-filled" : ""} ${prot ? "is-protected" : ""}">${label}</div>`;
+      };
+      return `<div class="field td-public-field" style="grid-template-rows: repeat(${rowIds.length + 1}, 1fr)">
+        <div class="midline"></div><div class="circle"></div>
+        ${rowIds.map(row => `<div class="field-row">${form.slots.filter(s => s.row === row).map(s => slotHtml(s, "lineup")).join("")}</div>`).join("")}
+        <div class="field-row td-bench-row">${benchSlots.map(b => slotHtml(b, "bench")).join("")}</div>
+      </div>`;
     }
 
     function renderTdCards(myTeam, myTurn) {
@@ -3927,7 +4004,7 @@
       const rows = rowIds.map(row => slots.filter(slot => slot.row === row));
       el.field.style.gridTemplateRows = `repeat(${rowIds.length}, 1fr)`;
       const compatible = new Set(state.selected ? availableSlotsFor(state.selected).map(slot => slot.id) : []);
-      el.fieldHint.textContent = state.selected ? "Toque numa bolinha acesa" : "Bolinhas com nomes abreviados";
+      el.fieldHint.textContent = state.selected ? "Toque numa bolinha acesa" : "Bolinhas com abreviacao e nota";
       el.field.innerHTML = `<div class="midline"></div><div class="circle"></div>` + rows.map(rowSlots => `
         <div class="field-row">
           ${rowSlots.map(slot => {
@@ -3935,7 +4012,7 @@
             const isCompatible = compatible.has(slot.id);
             return `
               <button class="slot ${player ? "is-filled" : ""} ${isCompatible ? "is-compatible" : ""}" type="button" data-slot="${slot.id}" ${player || (!isCompatible && state.selected) ? "disabled" : ""}>
-                ${player ? `${player.short}${state.captainId === player.id ? " C" : ""}` : slot.pos}
+                ${player ? `${draftPlayerLabel(player)}${state.captainId === player.id ? " C" : ""}` : slot.pos}
               </button>
             `;
           }).join("")}
