@@ -1,6 +1,6 @@
 # Rei da Copa - Handoff para Claude Code
 
-Ultima atualizacao: 2026-07-03 (multiplayer online: Fase 0-Firebase concluida e Fase 1-lobby feita e validada). Sessao tambem entregou: 8 formacoes iguais as do 7a0, correcao do 3-5-2, e penaltis escolhidos na hora da disputa. Detalhes nas secoes abaixo; roadmap atual no fim do arquivo.
+Ultima atualizacao: 2026-07-04 (multiplayer online: Fase D/torneio modo Assistir base implementada localmente). Sessao tambem entregou: GitHub Pages, lobby de torneio, draft por turnos, cartas Bloqueio/Troca, 8 formacoes iguais as do 7a0, correcao do 3-5-2, e penaltis escolhidos na hora da disputa. Detalhes nas secoes abaixo; roadmap atual no fim do arquivo.
 
 Este arquivo existe para outro agente continuar o projeto sem perder contexto. Manter atualizado a cada decisao, teste visual, implementacao ou mudanca de rumo.
 
@@ -186,10 +186,10 @@ Estado atual do codigo (index.html):
 - Validado no preview contra o banco real: Firebase conecta (`RC_NET.ready=true`), criar sala, 2o jogador entra e aparece em tempo real no lobby do 1o, prontos sincronizam, Comecar habilita com os 2 prontos, sair apaga a sala sem ressuscitar. Solo intacto. Sem erro de console.
 - CUIDADO ao testar 2 abas no MESMO navegador: compartilham `localStorage` => mesmo `clientId` => contam como 1 jogador so. Testar com 1 aba normal + 1 anonima (ou 2 dispositivos).
 
-FALTA:
-- Fase 0-hospedagem: publicar no GitHub Pages pra abrir em qualquer celular (tambem resolve o "nao abre no telefone"). Ainda nao feito.
-- Fase 2: draft 1x1 (cada um monta o XI e envia resumo pra `/rooms/{cod}/drafts/{clientId}`). O botao Comecar hoje so mostra toast de "Fase 2 em breve".
-- Fase 3: Final 1x1 autoritativa pelo host (seed) + reproducao nos 2 + card do confronto.
+FALTA / OBS desta secao historica:
+- Esta parte nasceu no plano 1x1 inicial. O estado mais atual do produto esta no roadmap "Estado atual e proximos passos" no fim do arquivo.
+- GitHub Pages ja foi publicado, lobby de torneio ja existe, draft por turnos ja existe e a base da Fase D/Assistir ja foi implementada localmente.
+- Ainda falta validar a Fase D em 2 celulares reais pelo GitHub Pages, fazer deploy do patch atual, criar playback cosmetico lance-a-lance dos jogos do jogador e depois partir para modo Interativo/regras definitivas do Firebase.
 
 ## Estado atual do prototipo jogavel
 
@@ -349,10 +349,15 @@ Proximos passos (roadmap do plano de torneios):
    - **Cartas** (1 de cada por humano, na sua vez, via o board): **Bloqueio** = protege secretamente 1 jogador seu (`teams/{me}/protectedId`, so voce ve o escudo). **Troca** = acao EXTRA (nao gasta pick): da 1 seu, rouba 1 visivel do adversario; se o alvo estiver protegido, FALHA e voce PERDE a carta. Fluxo por `state.tdCard` (bloqueio / {step:give} / {step:take}); `tdUseBloqueio`/`tdUseTroca` escrevem, host resolve via `pendingTroca`; `surfaceTrocaResult` avisa ladrao/alvo. RESSALVA: `protectedId` fica no RTDB aberto (secret so na UI) — anti-trapaca real so com backend.
    - Validado no preview: draft solo-humano ate 13 + CPU do restante; snake correto (A B C C B A...); picks 3/3/3/3/1; bloqueio; troca com sucesso; troca bloqueada (nada muda + perde carta); sem overflow; console limpo. FALTA validar 2 humanos ao vivo (2 dispositivos) — o Pedro testa no GitHub Pages.
    - AJUSTES posteriores (pedido do Pedro, feitos e validados): (a) **tempo por ESCOLHA**, nao pelo turno de 3 — cada pick reseta `draft.deadline` (`tdPlacePick`), e o timeout do host pega SO 1 por vez (`hostTimeoutPick`, substituiu `hostAutoCompleteTurn`) e reseta o prazo. (b) **escolher a posicao TOCANDO NO MINI CAMPO**: tocar num jogador (`tdSelectPlayer`) marca `state.tdSelected`; no `renderTdField` as vagas abertas compativeis (posicoes que ele joga + os 2 slots de Banco) acendem como `.slot.is-compatible` tocaveis; tocar na vaga chama `tdPlacePick(player, {group,slotId,pos})`. O campo do draft passou a mostrar tambem a linha do banco (`td-bench-row`). Validado: selecionar Maradona/Pele acende so as vagas certas (ex: PE/MEI/Banco), tocar coloca ali; timeout pega 1; prazo reseta por escolha; sem overflow.
-4. **Fase D — Torneio ASSISTIR (PROXIMA):** host monta grupos/bracket (com regra `spread`) e resolve placares (autoritativo); tabela/chaveamento ao vivo; playback cosmetico dos jogos do jogador; campeao. Hoje `tourneyWait` mostra "Fase D em breve" quando `status` vira "running".
-4. **Fase D — Torneio modo ASSISTIR:** host monta grupos/bracket e resolve placares; tabela/chaveamento ao vivo; playback dos seus jogos; campeao. (1o torneio jogavel ponta a ponta.)
-5. **Fase E — modo INTERATIVO;** **Fase F — Personalizado + regras definitivas do Firebase (expira ~2026-08-02) + polimento.**
-6. PWA depois.
+4. ~~Fase D - Torneio ASSISTIR (base)~~ FEITO LOCALMENTE em `index.html` (ainda nao deployado nesta sessao). Quando o draft termina, `finishDraft(room)` monta os CPUs restantes, cria `allTeams` e grava `tournament` na raiz da sala junto com `status:"running"`. Se uma sala antiga/instavel chegar em `running` sem `tournament`, o host chama `hostEnsureTournament(room)` e cria o torneio por fallback.
+   - Geracao: `buildTournament(teams, cfg)` suporta `format:"matamata"` e `format:"grupos"`. Mata-mata cria chave direta com `buildKnockout`. Grupos cria grupos por `groupSize` usando `Math.ceil`, respeita `spread` para separar humanos, simula rodadas com `roundRobin`, monta `group.table` com pontos/saldo/gols/overall e classifica `advance` por grupo. Depois pega classificados, limita a maior potencia de 2 ate `knockoutPhase` e cria o mata-mata final. O campeao fica em `tournament.champion`.
+   - Simulacao: `simulateTournamentMatch` resolve placar e penaltis em mata-mata quando empata; host e autoritativo porque grava o objeto `tournament` no Firebase.
+   - Tela: `renderTourneyWait()` agora vira tela do torneio quando `room.status` e `running/done` e existe `room.tournament`. Nova UI mostra resumo (times/jogos/campeao), "Seus jogos", grupos com classificacao, lista de partidas e chave. Destaques: jogos do jogador (`.match-row.is-mine`) e classificados (`.standing-row.is-qualified`).
+   - CSS novo: `.tourney-summary`, `.tourney-section`, `.tourney-title-row`, `.standings-table`, `.match-list`, `.bracket-list`, `.standing-row`, `.match-row`, `.match-score`, `.bracket-round`.
+   - Validacao local: sintaxe do script `JS_OK`; detector Impeccable `[]`; teste Node/VM gerou torneio de grupos com 4 grupos, 4 times por grupo, 8 classificados, campeao, 31 jogos totais; mata-mata de 16 gerou 4 fases, campeao e 15 jogos. FALTA validar em Firebase/2 celulares e fazer commit/push para Pages.
+5. **Fase D.1 - Assistir mais visual:** hoje o torneio aparece pronto em tabela/chave. Ainda falta criar o playback cosmetico lance-a-lance dos jogos do jogador (sem mudar o resultado autoritativo), com placar/mini campo/linha do tempo para ficar mais interativo.
+6. **Fase E - modo INTERATIVO;** **Fase F - Personalizado + regras definitivas do Firebase (expira ~2026-08-02) + polimento.**
+7. PWA depois.
 
 O lobby 1x1 atual e o caso minimo (bracket de 2). Nao e descartado — vira a base do lobby de torneio.
 

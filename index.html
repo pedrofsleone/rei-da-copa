@@ -542,6 +542,93 @@
       color: var(--primary);
     }
 
+    .tourney-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tourney-section {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tourney-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .standings-table,
+    .match-list,
+    .bracket-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .standing-row,
+    .match-row {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      display: grid;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .standing-row {
+      grid-template-columns: 22px 1fr auto auto;
+    }
+
+    .match-row {
+      grid-template-columns: 1fr auto 1fr;
+    }
+
+    .match-row.is-mine,
+    .standing-row.is-qualified {
+      border-color: var(--primary);
+      background: oklch(0.18 0.045 150);
+    }
+
+    .match-row .team-b {
+      text-align: right;
+    }
+
+    .match-score {
+      min-width: 46px;
+      min-height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--panel-3);
+      font-family: var(--display);
+      font-size: 18px;
+      font-weight: 950;
+      line-height: 0.95;
+    }
+
+    .match-score small {
+      color: var(--muted);
+      font-family: var(--body);
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .bracket-round {
+      display: grid;
+      gap: 6px;
+      padding-top: 4px;
+    }
+
     .setup-grid,
     .manager-panel,
     .coach-panel {
@@ -2001,6 +2088,7 @@
       // running / done -> Fase D (por enquanto, tela de espera)
       stopDraftTimer();
       state.tourney = state.tourney || { code: state.net.code };
+      if (isRoomHost(room) && st === "running" && !room.tournament) hostEnsureTournament(room);
       state.screen = "tourneyWait";
       render();
     }
@@ -2262,14 +2350,213 @@
       const total = teamCount(c);
       const cpuNeeded = c.fill === "cpu" ? Math.max(0, total - Object.keys(teams).length) : 0;
       const taken = { ...((room.draft && room.draft.taken) || {}) };
+      const allTeams = JSON.parse(JSON.stringify(teams));
       const u = { status: "running", "draft/done": true };
       const names = [...CPU_NAMES].sort(() => Math.random() - 0.5);
       for (let i = 0; i < cpuNeeded; i++) {
         const t = autoBuildTeam(names[i % names.length] || ("CPU " + (i + 1)), taken);
         Object.values(t.lineup || {}).forEach(p => { taken[p.id] = "cpu" + i; });
         u["teams/cpu" + i] = t;
+        allTeams["cpu" + i] = t;
       }
+      u["tournament"] = buildTournament(allTeams, c);
       window.RC_NET.patch(state.net.code, u);
+    }
+
+    function hostEnsureTournament(room) {
+      if (!room || room.tournament || !state.net || !netReady()) return;
+      window.RC_NET.patch(state.net.code, { tournament: buildTournament(room.teams || {}, cfgOr(room.config)) });
+    }
+
+    function buildTournament(teams, cfg) {
+      const ids = orderTeamIds(teams, cfg);
+      const startedAt = Date.now();
+      if (cfg.format === "matamata") {
+        const bracket = buildKnockout(ids, teams, "Mata-mata");
+        return {
+          format: "matamata",
+          startedAt,
+          totalTeams: ids.length,
+          bracket,
+          champion: bracket.champion
+        };
+      }
+      const groups = buildGroupStage(ids, teams, cfg);
+      const qualifiers = groups.flatMap(g => g.table.filter(row => row.qualified).map(row => row.id));
+      const limit = highestPowerOfTwo(Math.min(cfg.knockoutPhase || qualifiers.length, qualifiers.length));
+      const bracketIds = orderKnockoutIds(qualifiers.slice(0, limit), teams, cfg.spread);
+      const bracket = bracketIds.length >= 2 ? buildKnockout(bracketIds, teams, "Mata-mata final") : null;
+      return {
+        format: "grupos",
+        startedAt,
+        totalTeams: ids.length,
+        groups,
+        bracket,
+        champion: bracket ? bracket.champion : bracketIds[0]
+      };
+    }
+
+    function orderTeamIds(teams, cfg) {
+      const ids = Object.keys(teams || {});
+      const humans = ids.filter(id => teams[id] && teams[id].human);
+      const cpus = ids.filter(id => !(teams[id] && teams[id].human));
+      if (!cfg.spread) return shuffle([...ids]);
+      if (cfg.format === "matamata") return orderKnockoutIds([...humans, ...cpus], teams, true);
+      return [...humans, ...cpus];
+    }
+
+    function orderKnockoutIds(ids, teams, spread) {
+      const list = spread ? spreadHumans(ids, teams) : shuffle([...ids]);
+      const n = list.length;
+      if (n <= 2) return list;
+      const positions = Array(n).fill(null);
+      const seeds = [0, Math.floor(n / 2), Math.floor(n / 4), Math.floor(n * 3 / 4)];
+      list.forEach((id, index) => {
+        const pos = seeds[index] != null && !positions[seeds[index]] ? seeds[index] : positions.findIndex(v => v === null);
+        positions[pos] = id;
+      });
+      return positions.filter(Boolean);
+    }
+
+    function spreadHumans(ids, teams) {
+      const humans = ids.filter(id => teams[id] && teams[id].human);
+      const cpus = ids.filter(id => !(teams[id] && teams[id].human));
+      return [...humans, ...cpus];
+    }
+
+    function buildGroupStage(ids, teams, cfg) {
+      const groupCount = Math.max(1, Math.ceil(ids.length / Math.max(2, cfg.groupSize || 4)));
+      const groups = Array.from({ length: groupCount }, (_, index) => ({ name: String.fromCharCode(65 + index), teamIds: [], matches: [] }));
+      const humans = ids.filter(id => teams[id] && teams[id].human);
+      const cpus = ids.filter(id => !(teams[id] && teams[id].human));
+      const ordered = cfg.spread ? [...humans, ...cpus] : shuffle([...ids]);
+      ordered.forEach((id, index) => groups[index % groupCount].teamIds.push(id));
+      groups.forEach(group => {
+        const rounds = roundRobin(group.teamIds);
+        const roundsToPlay = Math.max(1, cfg.rounds || Math.max(1, rounds.length));
+        for (let r = 0; r < roundsToPlay; r++) {
+          const pairings = rounds[r % Math.max(1, rounds.length)] || [];
+          pairings.forEach(pair => {
+            if (!pair[0] || !pair[1]) return;
+            group.matches.push(simulateTournamentMatch(pair[0], pair[1], teams, false, `Grupo ${group.name}`));
+          });
+        }
+        group.table = rankGroup(group.teamIds, group.matches, teams, cfg.advance || 2);
+      });
+      return groups;
+    }
+
+    function roundRobin(teamIds) {
+      const list = [...teamIds];
+      if (list.length % 2) list.push(null);
+      const rounds = [];
+      for (let r = 0; r < list.length - 1; r++) {
+        const pairs = [];
+        for (let i = 0; i < list.length / 2; i++) {
+          const a = list[i], b = list[list.length - 1 - i];
+          if (a && b) pairs.push([a, b]);
+        }
+        rounds.push(pairs);
+        list.splice(1, 0, list.pop());
+      }
+      return rounds;
+    }
+
+    function buildKnockout(ids, teams, label) {
+      let current = [...ids];
+      const rounds = [];
+      while (current.length > 1) {
+        const name = phaseName(current.length);
+        const matches = [];
+        const winners = [];
+        for (let i = 0; i < current.length / 2; i++) {
+          const home = current[i];
+          const away = current[current.length - 1 - i];
+          const match = simulateTournamentMatch(home, away, teams, true, name);
+          matches.push(match);
+          winners.push(match.winner);
+        }
+        rounds.push({ name, matches });
+        current = winners;
+      }
+      return { label, rounds, champion: current[0] || null };
+    }
+
+    function simulateTournamentMatch(home, away, teams, knockout, stage) {
+      const a = tournamentStrength(teams[home]);
+      const b = tournamentStrength(teams[away]);
+      const pressure = clamp(50 + Math.round((a.overall - b.overall) * 1.8 + rand(-8, 8)), 25, 75);
+      let hg = clamp(Math.round((a.attack - b.defense + 18) / 11 + Math.random() * 2.2), 0, 5);
+      let ag = clamp(Math.round((b.attack - a.defense + 18) / 11 + Math.random() * 2.2), 0, 5);
+      if (!knockout && hg === 0 && ag === 0 && Math.random() < 0.45) {
+        if (pressure >= 50) hg = 1; else ag = 1;
+      }
+      let winner = null;
+      let penalties = null;
+      if (hg > ag) winner = home;
+      if (ag > hg) winner = away;
+      if (knockout && hg === ag) {
+        const homeWins = a.overall + rand(-10, 10) >= b.overall + rand(-10, 10);
+        winner = homeWins ? home : away;
+        const loserPens = rand(2, 4);
+        const winnerPens = clamp(loserPens + rand(1, 2), 3, 5);
+        penalties = homeWins ? `${winnerPens}-${loserPens}` : `${loserPens}-${winnerPens}`;
+      }
+      return {
+        id: `${stage}-${home}-${away}-${Math.random().toString(36).slice(2, 7)}`,
+        stage,
+        home,
+        away,
+        hg,
+        ag,
+        winner,
+        penalties,
+        played: true
+      };
+    }
+
+    function tournamentStrength(team) {
+      const lineup = team && team.lineup ? team.lineup : {};
+      const vals = Object.values(lineup).filter(Boolean);
+      const overall = team && team.overall ? team.overall : Math.round(vals.reduce((s, p) => s + (p.rating || 80), 0) / Math.max(1, vals.length));
+      return {
+        overall,
+        attack: team && team.attack ? team.attack : avgRatingByPos(lineup, ["PE", "CA", "PD", "MEI"]),
+        defense: team && team.defense ? team.defense : avgRatingByPos(lineup, ["GOL", "LD", "ZAG", "LE", "VOL"])
+      };
+    }
+
+    function rankGroup(teamIds, matches, teams, advance) {
+      const rows = {};
+      teamIds.forEach(id => rows[id] = { id, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 });
+      matches.forEach(match => {
+        const h = rows[match.home], a = rows[match.away];
+        if (!h || !a) return;
+        h.p++; a.p++;
+        h.gf += match.hg; h.ga += match.ag;
+        a.gf += match.ag; a.ga += match.hg;
+        if (match.hg > match.ag) { h.w++; a.l++; h.pts += 3; }
+        else if (match.ag > match.hg) { a.w++; h.l++; a.pts += 3; }
+        else { h.d++; a.d++; h.pts++; a.pts++; }
+      });
+      return Object.values(rows)
+        .map(row => ({ ...row, gd: row.gf - row.ga, overall: (teams[row.id] && teams[row.id].overall) || 0 }))
+        .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || b.overall - a.overall)
+        .map((row, index) => ({ ...row, qualified: index < advance }));
+    }
+
+    function phaseName(size) {
+      return size === 32 ? "16avos" : size === 16 ? "Oitavas" : size === 8 ? "Quartas" : size === 4 ? "Semi" : "Final";
+    }
+
+    function highestPowerOfTwo(n) {
+      let p = 1;
+      while (p * 2 <= n) p *= 2;
+      return p;
+    }
+
+    function shuffle(list) {
+      return [...list].sort(() => Math.random() - 0.5);
     }
 
     // ---- cartas ----
@@ -2460,6 +2747,11 @@
       const room = state.net && state.net.room;
       if (!room) return;
       const teams = room.teams || {};
+      const tournament = room.tournament;
+      if ((room.status === "running" || room.status === "done") && tournament) {
+        renderTournamentView(room, tournament, teams);
+        return;
+      }
       const tids = Object.keys(teams);
       const humanTeams = tids.filter(id => teams[id].human);
       const humanDone = humanTeams.filter(id => teams[id].submitted).length;
@@ -2480,6 +2772,101 @@
           <span class="tag">${kind}${t.submitted ? " · pronto" : " · montando"}</span>
         </div>`;
       }).join("") : `<div class="empty-state">Montando os times...</div>`;
+    }
+
+    function renderTournamentView(room, tournament, teams) {
+      const champion = tournament.champion && teams[tournament.champion];
+      const totalMatches = tournamentMatchCount(tournament);
+      const mine = teams[clientId] ? clientId : null;
+      const myMatches = tournamentMatches(tournament).filter(match => match.home === mine || match.away === mine);
+      el.tourneyWaitHint.textContent = `${tournament.totalTeams || Object.keys(teams).length} times`;
+      el.tourneyWaitStatus.textContent = champion
+        ? `Campeao: ${teamDisplayName(champion)}. ${totalMatches} jogos simulados pelo anfitriao.`
+        : "Torneio em andamento.";
+      el.tourneyTeams.innerHTML = `
+        <div class="tourney-summary">
+          <div class="metric"><strong>${tournament.totalTeams || Object.keys(teams).length}</strong><span>times</span></div>
+          <div class="metric"><strong>${totalMatches}</strong><span>jogos</span></div>
+          <div class="metric"><strong>${champion ? escapeHtml(shortTeamName(champion)) : "--"}</strong><span>campeao</span></div>
+        </div>
+        ${myMatches.length ? `<div class="tourney-section">
+          <div class="tourney-title-row"><span>Seus jogos</span><span>${myMatches.length}</span></div>
+          <div class="match-list">${myMatches.map(match => renderMatchRow(match, teams, mine)).join("")}</div>
+        </div>` : ""}
+        ${tournament.groups ? renderGroups(tournament.groups, teams, mine) : ""}
+        ${tournament.bracket ? renderBracket(tournament.bracket, teams, mine) : ""}
+      `;
+    }
+
+    function renderGroups(groups, teams, mine) {
+      return groups.map(group => `
+        <div class="tourney-section">
+          <div class="tourney-title-row"><span>Grupo ${group.name}</span><span>${group.matches.length} jogos</span></div>
+          <div class="standings-table">
+            ${group.table.map((row, index) => `
+              <div class="standing-row ${row.qualified ? "is-qualified" : ""}">
+                <span>${index + 1}</span>
+                <strong>${escapeHtml(shortTeamName(teams[row.id]))}${row.id === mine ? " (voce)" : ""}</strong>
+                <span>${row.pts} pts</span>
+                <span>${row.gd >= 0 ? "+" : ""}${row.gd}</span>
+              </div>
+            `).join("")}
+          </div>
+          <div class="match-list">${group.matches.map(match => renderMatchRow(match, teams, mine)).join("")}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderBracket(bracket, teams, mine) {
+      return `<div class="tourney-section">
+        <div class="tourney-title-row"><span>Chave</span><span>${bracket.rounds.length} fases</span></div>
+        <div class="bracket-list">
+          ${bracket.rounds.map(round => `
+            <div class="bracket-round">
+              <div class="tourney-title-row"><span>${round.name}</span><span>${round.matches.length}</span></div>
+              ${round.matches.map(match => renderMatchRow(match, teams, mine)).join("")}
+            </div>
+          `).join("")}
+        </div>
+      </div>`;
+    }
+
+    function renderMatchRow(match, teams, mine) {
+      const mineClass = match.home === mine || match.away === mine ? "is-mine" : "";
+      return `<div class="match-row ${mineClass}">
+        <span>${escapeHtml(shortTeamName(teams[match.home]))}</span>
+        <span class="match-score"><span>${match.hg}-${match.ag}</span>${match.penalties ? `<small>pen ${match.penalties}</small>` : ""}</span>
+        <span class="team-b">${escapeHtml(shortTeamName(teams[match.away]))}</span>
+      </div>`;
+    }
+
+    function tournamentMatches(tournament) {
+      const groupMatches = tournament.groups ? tournament.groups.flatMap(g => g.matches || []) : [];
+      const bracketMatches = tournament.bracket ? tournament.bracket.rounds.flatMap(r => r.matches || []) : [];
+      return [...groupMatches, ...bracketMatches];
+    }
+
+    function tournamentMatchCount(tournament) {
+      return tournamentMatches(tournament).length;
+    }
+
+    function teamDisplayName(team) {
+      return (team && (team.name || team.apelido)) || "Time";
+    }
+
+    function shortTeamName(team) {
+      const name = (team && (team.name || team.apelido)) || "Time";
+      return name.length > 13 ? name.slice(0, 12) + "." : name;
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[ch]);
     }
 
     function copyRoomCode() {
@@ -2541,7 +2928,7 @@
         html += cfgSegRow("Quantos passam", "advance", [{ v: 1, l: "1" }, { v: 2, l: "2" }, { v: 3, l: "3" }], c.advance);
         html += cfgSegRow("Rodadas no grupo", "rounds", [{ v: 3, l: "3" }, { v: 5, l: "5" }, { v: 7, l: "7" }, { v: 9, l: "9" }, { v: 11, l: "11" }, { v: 13, l: "13" }, { v: 15, l: "15" }], c.rounds);
         html += cfgSegRow("Mata-mata final", "knockoutPhase", PHASE_OPTIONS, c.knockoutPhase);
-        const groups = Math.max(1, Math.floor(c.size / c.groupSize));
+        const groups = Math.max(1, Math.ceil(c.size / c.groupSize));
         html += `<div class="sync-line">${groups} grupos de ${c.groupSize} · ${groups * c.advance} se classificam.</div>`;
       }
       html += cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
