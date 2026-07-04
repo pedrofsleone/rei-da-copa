@@ -364,7 +364,19 @@ Proximos passos (roadmap do plano de torneios):
    - Tela: `renderTourneyWait()` agora vira tela do torneio quando `room.status` e `running/done` e existe `room.tournament`. Nova UI mostra resumo (times/jogos/campeao), "Seus jogos", grupos com classificacao, lista de partidas e chave. Destaques: jogos do jogador (`.match-row.is-mine`) e classificados (`.standing-row.is-qualified`).
    - CSS novo: `.tourney-summary`, `.tourney-section`, `.tourney-title-row`, `.standings-table`, `.match-list`, `.bracket-list`, `.standing-row`, `.match-row`, `.match-score`, `.bracket-round`.
    - Validacao local: sintaxe do script `JS_OK`; detector Impeccable `[]`; teste Node/VM gerou torneio de grupos com 4 grupos, 4 times por grupo, 8 classificados, campeao, 31 jogos totais; mata-mata de 16 gerou 4 fases, campeao e 15 jogos. FALTA validar em Firebase/2 celulares e fazer commit/push para Pages.
-5. **Fase D.1 - Assistir mais visual:** hoje o torneio aparece pronto em tabela/chave. Ainda falta criar o playback cosmetico lance-a-lance dos jogos do jogador (sem mudar o resultado autoritativo), com placar/mini campo/linha do tempo para ficar mais interativo.
+4a. DECISAO NOVA 2026-07-04 (pedido: resultado nao pode aparecer todo): o torneio nao deve revelar tabela/chave/resultados futuros de uma vez. Precisa virar uma transmissao progressiva. No lobby/config do torneio criar 2 opcoes de exibicao:
+   - `Ver todos os jogos`: todos os jogos entram na fila de transmissao, inclusive CPU x CPU.
+   - `Ver so jogos com jogadores`: entram na fila de transmissao apenas partidas com pelo menos 1 humano; jogos CPU x CPU sao simulados/revelados sem playback quando necessario para atualizar tabela/chave.
+   - Em ambos os modos, TODOS os participantes veem o mesmo jogo que esta sendo transmitido, mesmo quando o jogo e de outro jogador. Ou seja, nao e tela individual; e uma sala sincronizada.
+   - O resultado final de cada partida so deve aparecer quando aquele jogo acabar. Tabela, grupos, chave, classificados e campeao devem atualizar aos poucos, sem spoiler de jogos futuros.
+   - Provavel modelagem: `config.watchScope = "all" | "humans"`; `room.broadcast = { matchQueue, currentIndex, revealedMatchIds, phase }`; host controla/autoriza avancos e grava progresso no Firebase para todos os celulares reproduzirem.
+   - Video de referencia enviado: `C:\Users\pedro\OneDrive\Documentos\REI_DA_COPA\WhatsApp Video 2026-07-04 at 15.02.09.mp4`. Nesta sessao nao foi possivel extrair frames: navegador bloqueou `file://` para video local, nao havia `ffmpeg/cv2/imageio/moviepy`, e a API nativa do Windows nao gerou frames uteis. Pedro precisa mandar 2-3 prints do video ou confirmar em texto os pontos abaixo.
+5. **Fase D.1 - Assistir mais visual / transmissao ao vivo:** substituir a tela que mostra tudo pronto por playback lance-a-lance sincronizado. Perguntas pendentes antes de implementar:
+   - A escolha `Ver todos os jogos` vs `Ver so jogos com jogadores` fica no lobby e so o anfitriao altera?
+   - Quem controla `Auto`, `Pular`, `Lance`: so anfitriao para todos, ou cada celular apenas assiste sem controle?
+   - Em CPU x CPU no modo `Ver todos os jogos`, o playback deve ser lance-a-lance igual jogo humano ou automatico mais rapido?
+   - No modo `Ver so jogos com jogadores`, jogos CPU x CPU aparecem como resultado automatico entre transmissos, ou ficam ocultos ate a tabela precisar deles?
+   - Layout desejado pelo video: confirmar se tem placar grande, minuto, campo com bolinhas, timeline/narracao, estatisticas e fila de proximos jogos.
 6. **Fase E - modo INTERATIVO;** **Fase F - Personalizado + regras definitivas do Firebase (expira ~2026-08-02) + polimento.**
 7. PWA depois.
 
@@ -374,6 +386,7 @@ O lobby 1x1 atual e o caso minimo (bracket de 2). Nao e descartado — vira a ba
 
 - Tema/foco: comecamos com **selecoes da Copa** (base atual). Confirmar se vai ter clubes/Brasil x Mundo depois.
 - Dados: hoje base ficticia/curada de exemplo embutida no HTML. Definir se vai pra base real e mais completa.
+- Transmissao do torneio: confirmar as perguntas da Fase D.1 acima, idealmente com prints do video de referencia.
 - Estilo/Modo/Dificuldade do 7a0 (Defensivo/Equilibrado/Ofensivo, Classico/De almanaque): ainda nao implementados no Rei da Copa. Decidir se entram.
 
 ## Observacao legal/produto
