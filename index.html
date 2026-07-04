@@ -924,9 +924,48 @@
     }
 
     .player-card.is-selected {
-      border-color: var(--primary);
-      background: oklch(0.18 0.045 150);
+      border-color: oklch(0.62 0.2 28);
+      background: oklch(0.55 0.2 28);
+      color: oklch(0.99 0 0);
     }
+    .player-card.is-selected .player-detail,
+    .player-card.is-selected .rating { color: oklch(0.99 0 0); }
+
+    .td-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      margin-top: 10px;
+    }
+
+    .td-tab {
+      flex: 0 0 auto;
+      min-width: 92px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-2);
+      padding: 8px 10px;
+      display: grid;
+      gap: 2px;
+    }
+
+    .td-tab.is-active {
+      border-color: var(--accent);
+      background: oklch(0.22 0.06 222);
+    }
+
+    .td-tab-name { font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .td-tab-meta { font-size: 10px; font-weight: 800; color: var(--muted, oklch(0.72 0.02 235)); }
+    .td-navez { color: oklch(0.85 0.16 30); }
+
+    .slot.is-target {
+      border-color: var(--primary);
+      background: oklch(0.30 0.08 152);
+      cursor: pointer;
+    }
+
+    .watch-row { min-height: 44px; grid-template-columns: 1fr 48px; }
 
     .player-card:disabled {
       opacity: 0.42;
@@ -1615,18 +1654,11 @@
       <button class="multi-back" id="tdLeaveBtn" type="button">← Sair do torneio</button>
       <section class="panel panel-pad">
         <div class="section-head">
-          <h1 class="section-title" id="tdTurnTitle">Draft</h1>
+          <h1 class="section-title" id="tdTurnTitle">Escalacoes ao vivo</h1>
           <span class="hint td-timer" id="tdTimer">--</span>
         </div>
+        <div class="td-tabs" id="tdTabs"></div>
         <div class="sync-line" id="tdTurnHint"></div>
-      </section>
-      <section class="panel panel-pad field-wrap">
-        <div class="section-head">
-          <h2 class="section-title">Seu time</h2>
-          <span class="hint" id="tdFieldHint"></span>
-        </div>
-        <div class="field" id="tdField"></div>
-        <div class="td-cards" id="tdCards"></div>
       </section>
       <section class="panel panel-pad" id="tdPickPanel">
         <div class="section-head">
@@ -1634,14 +1666,22 @@
           <span class="hint" id="tdPickHint">Role e pegue 3</span>
         </div>
         <div class="draw-card" id="tdDrawCard"></div>
+        <div class="td-cards" id="tdCards"></div>
         <div class="player-list" id="tdPlayerList"></div>
       </section>
-      <section class="panel panel-pad">
+      <section class="panel panel-pad" id="tdWatchPanel">
         <div class="section-head">
-          <h2 class="section-title">Draft ao vivo</h2>
-          <span class="hint" id="tdBoardHint"></span>
+          <h2 class="section-title" id="tdWatchTitle">Assistindo</h2>
+          <span class="hint" id="tdWatchHint"></span>
         </div>
-        <div class="td-board" id="tdBoard"></div>
+        <div class="player-list" id="tdWatchList"></div>
+      </section>
+      <section class="panel panel-pad field-wrap" id="tdFieldPanel">
+        <div class="section-head">
+          <h2 class="section-title" id="tdFieldTitle">Campo</h2>
+          <span class="hint" id="tdFieldHint"></span>
+        </div>
+        <div class="field" id="tdField"></div>
       </section>
     </section>
 
@@ -2234,15 +2274,20 @@
       tdTurnTitle: document.getElementById("tdTurnTitle"),
       tdTimer: document.getElementById("tdTimer"),
       tdTurnHint: document.getElementById("tdTurnHint"),
+      tdTabs: document.getElementById("tdTabs"),
       tdFieldHint: document.getElementById("tdFieldHint"),
+      tdFieldTitle: document.getElementById("tdFieldTitle"),
+      tdFieldPanel: document.getElementById("tdFieldPanel"),
       tdField: document.getElementById("tdField"),
       tdCards: document.getElementById("tdCards"),
       tdPickPanel: document.getElementById("tdPickPanel"),
       tdPickHint: document.getElementById("tdPickHint"),
       tdDrawCard: document.getElementById("tdDrawCard"),
       tdPlayerList: document.getElementById("tdPlayerList"),
-      tdBoardHint: document.getElementById("tdBoardHint"),
-      tdBoard: document.getElementById("tdBoard"),
+      tdWatchPanel: document.getElementById("tdWatchPanel"),
+      tdWatchTitle: document.getElementById("tdWatchTitle"),
+      tdWatchHint: document.getElementById("tdWatchHint"),
+      tdWatchList: document.getElementById("tdWatchList"),
       tourneyWaitView: document.getElementById("tourneyWaitView"),
       tourneyLeaveBtn: document.getElementById("tourneyLeaveBtn"),
       tourneyWaitHint: document.getElementById("tourneyWaitHint"),
@@ -3070,21 +3115,124 @@
     function renderTourneyDraft() {
       const r = tdRoom(); if (!r || !r.draft) return;
       const d = r.draft, teams = r.teams || {};
-      const myTurn = tdIsMyTurn();
       const activeId = tdActive(d);
+      const myTurn = tdIsMyTurn();
       const need = picksThisTurn(d.round);
       const myTeam = teams[clientId] || {};
       const myDone = (myTeam.count || 0) >= TROSTER || !!myTeam.submitted;
       if (!myTurn) { state.tdCard = null; state.tdSelected = null; } // acoes so na sua vez
+
+      el.tdTurnTitle.textContent = "Escalacoes ao vivo";
       const activeName = (teams[activeId] && teams[activeId].apelido) || "?";
-      el.tdTurnTitle.textContent = myDone ? "Time pronto" : myTurn ? "Sua vez" : `Vez de ${activeName}`;
-      el.tdTurnHint.textContent = myDone ? "Elenco enviado. Aguarde o torneio comecar."
-        : myTurn ? `Pegue ${need} - feitos ${d.pickInTurn || 0}/${need}` : "Aguarde sua vez...";
-      renderTdField(myTeam);
-      renderTdCards(myTeam, myTurn);
-      el.tdPickPanel.hidden = !myTurn || myDone;
-      if (myTurn && !myDone) renderTdPick(r, myTeam);
-      renderTdBoard(r);
+      el.tdTurnHint.textContent = myDone ? "Seu time esta pronto. Aguarde os outros."
+        : myTurn ? `Sua vez — pegue ${need} (feitos ${d.pickInTurn || 0}/${need})`
+          : `Vez de ${activeName}...`;
+
+      renderTdTabs(r, d, activeId);
+
+      const takeMode = state.tdCard && state.tdCard.step === "take";
+      const iAmPicking = myTurn && !myDone && activeId === clientId;
+
+      if (takeMode) {
+        // Carta Troca: escolher o alvo entre os adversarios
+        el.tdPickPanel.hidden = true;
+        el.tdWatchPanel.hidden = false;
+        renderTdSteal(r);
+        el.tdFieldTitle.textContent = "Seu campo";
+        renderTdField(myTeam);
+      } else if (iAmPicking) {
+        // Minha vez: sorteio + lista + cartas + meu campo (toque pra encaixar)
+        el.tdPickPanel.hidden = false;
+        el.tdWatchPanel.hidden = true;
+        renderTdPick(r, myTeam);
+        renderTdCards(myTeam, myTurn);
+        el.tdFieldTitle.textContent = "Seu campo";
+        renderTdField(myTeam);
+      } else {
+        // Assistindo o jogador da vez (ou meu time quando ja terminei)
+        const viewTeam = teams[activeId] || {};
+        const isMe = activeId === clientId;
+        el.tdPickPanel.hidden = true;
+        el.tdWatchPanel.hidden = false;
+        renderTdWatch(viewTeam, d, activeId);
+        el.tdFieldTitle.textContent = isMe ? "Seu campo" : `Campo de ${viewTeam.apelido || "Jogador"}`;
+        fillWatchField(viewTeam, d, isMe);
+      }
+    }
+
+    function renderTdTabs(r, d, activeId) {
+      const teams = r.teams || {};
+      const order = d.order || [];
+      el.tdTabs.innerHTML = order.map(id => {
+        const t = teams[id] || {};
+        const isMe = id === clientId;
+        const active = id === activeId;
+        return `<div class="td-tab ${active ? "is-active" : ""} ${isMe ? "is-me" : ""}">
+          <span class="td-tab-name">${escapeHtml(t.apelido || "Jogador")}${isMe ? " (voce)" : ""}</span>
+          <span class="td-tab-meta">${active ? "<b class='td-navez'>NA VEZ</b> · " : ""}${t.count || 0}/${TROSTER}</span>
+        </div>`;
+      }).join("");
+    }
+
+    // lista dos jogadores que um time ja pegou (aba de assistir), com ??? na ultima escolha
+    function renderTdWatch(team, d, teamId) {
+      const isMe = teamId === clientId;
+      el.tdWatchTitle.textContent = isMe ? "Seu time" : `Time de ${team.apelido || "Jogador"}`;
+      el.tdWatchHint.textContent = `${team.count || 0}/${TROSTER}`;
+      const entries = tdTeamEntries(team).sort((a, b) => (a.p.seq || 0) - (b.p.seq || 0));
+      const hiddenSeq = tdHiddenSeq(entries, isMe, d);
+      el.tdWatchList.innerHTML = entries.length ? entries.map(e => {
+        const hide = e.p.seq === hiddenSeq;
+        const prot = isMe && team.protectedId === e.p.id;
+        return `<div class="player-card watch-row">
+          <span class="player-main"><span class="player-name">${hide ? "???" : escapeHtml(e.p.name)}${prot ? " 🛡" : ""}</span>
+          <span class="player-detail">${hide ? "esperando revelar" : escapeHtml(e.p.natural)}</span></span>
+          <span class="rating">${hide ? "" : (e.p.rating || "")}</span></div>`;
+      }).join("") : `<div class="empty-state">Ainda nao escolheu ninguem.</div>`;
+    }
+
+    // Carta Troca — alvos: jogadores VISIVEIS dos adversarios
+    function renderTdSteal(r) {
+      const teams = r.teams || {}, d = r.draft;
+      const order = (d.order || []).filter(id => id !== clientId);
+      el.tdWatchTitle.textContent = "Roube um jogador";
+      el.tdWatchHint.textContent = "toque no alvo";
+      el.tdWatchList.innerHTML = order.map(id => {
+        const t = teams[id] || {};
+        const entries = tdTeamEntries(t).sort((a, b) => (a.p.seq || 0) - (b.p.seq || 0));
+        const hiddenSeq = tdHiddenSeq(entries, false, d);
+        const rows = entries.filter(e => e.p.seq !== hiddenSeq).map(e =>
+          `<button class="player-card is-target" type="button" data-steal-team="${id}" data-steal-pid="${e.p.id}">
+            <span class="player-main"><span class="player-name">${escapeHtml(e.p.name)}</span>
+            <span class="player-detail">${escapeHtml(e.p.natural)} · ${escapeHtml(t.apelido || "")}</span></span>
+            <span class="rating">${e.p.rating || ""}</span></button>`).join("");
+        return rows;
+      }).join("") || `<div class="empty-state">Nada pra roubar ainda.</div>`;
+      el.tdWatchList.querySelectorAll("[data-steal-team]").forEach(b => b.onclick = () => {
+        const m = state.tdCard; state.tdCard = null;
+        tdUseTroca(m.giveSlot, m.giveGroup, b.dataset.stealTeam, b.dataset.stealPid);
+      });
+    }
+
+    // preenche o mini campo (read-only) de um time assistido, com ??? na ultima escolha
+    function fillWatchField(team, d, isMe) {
+      const form = formations[team.formation || "4-3-3"];
+      const rowIds = [...new Set(form.slots.map(s => s.row))].sort((a, b) => a - b);
+      el.tdField.style.gridTemplateRows = `repeat(${rowIds.length + 1}, 1fr)`;
+      const lineup = team.lineup || {}, bench = team.bench || {};
+      el.tdFieldHint.textContent = `${team.count || 0}/${TROSTER}`;
+      const hiddenSeq = tdHiddenSeq(tdTeamEntries(team), isMe, d);
+      const slotHtml = (slot, group) => {
+        const p = group === "bench" ? bench[slot.id] : lineup[slot.id];
+        const hidden = p && p.seq === hiddenSeq;
+        const prot = p && isMe && team.protectedId === p.id;
+        const filled = p && !hidden;
+        const label = filled ? `${draftPlayerLabel(p)}${prot ? " 🛡" : ""}` : (group === "bench" ? "Banco" : slot.pos);
+        return `<div class="slot ${filled ? "is-filled" : ""} ${prot ? "is-protected" : ""}">${label}</div>`;
+      };
+      el.tdField.innerHTML = `<div class="midline"></div><div class="circle"></div>`
+        + rowIds.map(row => `<div class="field-row">${form.slots.filter(s => s.row === row).map(s => slotHtml(s, "lineup")).join("")}</div>`).join("")
+        + `<div class="field-row td-bench-row">${benchSlots.map(b => slotHtml(b, "bench")).join("")}</div>`;
     }
 
     function renderTdField(team) {
@@ -3093,22 +3241,30 @@
       el.tdField.style.gridTemplateRows = `repeat(${rowIds.length + 1}, 1fr)`; // +1 pra linha do banco
       const lineup = team.lineup || {}, bench = team.bench || {};
       const sel = tdSelectedPlayer();
-      el.tdFieldHint.textContent = sel ? "Toque na vaga acesa" : `${team.count || 0}/${TROSTER}`;
+      const card = state.tdCard; // 'bloqueio' | {step:'give'} agem no jogador PREENCHIDO
+      const cardOnFilled = card === "bloqueio" || (card && card.step === "give");
+      el.tdFieldHint.textContent = card === "bloqueio" ? "Toque num jogador seu pra proteger"
+        : (card && card.step === "give") ? "Toque num jogador seu pra oferecer"
+          : sel ? "Toque na vaga acesa" : `${team.count || 0}/${TROSTER}`;
       const slotHtml = (slot, group) => {
         const p = group === "bench" ? bench[slot.id] : lineup[slot.id];
         const prot = p && team.protectedId === p.id;
-        const compatible = sel && !p && (group === "bench" ? true : sel.positions.includes(slot.pos));
         const label = p ? (draftPlayerLabel(p) + (prot ? " 🛡" : "")) : (group === "bench" ? "Banco" : slot.pos);
+        if (p && cardOnFilled) {
+          const act = card === "bloqueio" ? `data-tdcard="bloq" data-pid="${p.id}"` : `data-tdcard="give" data-group="${group}" data-slot="${slot.id}"`;
+          return `<button class="slot is-filled is-target" type="button" ${act}>${label}</button>`;
+        }
+        const compatible = !card && sel && !p && (group === "bench" ? true : sel.positions.includes(slot.pos));
         if (compatible) return `<button class="slot is-compatible" type="button" data-tdslot="${slot.id}" data-tdgroup="${group}" data-tdpos="${slot.pos}">${label}</button>`;
         return `<div class="slot ${p ? "is-filled" : ""} ${prot ? "is-protected" : ""}">${label}</div>`;
       };
       el.tdField.innerHTML = `<div class="midline"></div><div class="circle"></div>`
         + rowIds.map(row => `<div class="field-row">${form.slots.filter(s => s.row === row).map(s => slotHtml(s, "lineup")).join("")}</div>`).join("")
         + `<div class="field-row td-bench-row">${benchSlots.map(b => slotHtml(b, "bench")).join("")}</div>`;
-      if (sel) {
-        el.tdField.querySelectorAll("[data-tdslot]").forEach(b => b.onclick = () =>
-          tdPlacePick(sel, { group: b.dataset.tdgroup, slotId: b.dataset.tdslot, pos: b.dataset.tdgroup === "bench" ? "Banco" : b.dataset.tdpos }));
-      }
+      el.tdField.querySelectorAll("[data-tdslot]").forEach(b => b.onclick = () =>
+        tdPlacePick(sel, { group: b.dataset.tdgroup, slotId: b.dataset.tdslot, pos: b.dataset.tdgroup === "bench" ? "Banco" : b.dataset.tdpos }));
+      el.tdField.querySelectorAll('[data-tdcard="bloq"]').forEach(b => b.onclick = () => { state.tdCard = null; tdUseBloqueio(b.dataset.pid); });
+      el.tdField.querySelectorAll('[data-tdcard="give"]').forEach(b => b.onclick = () => { state.tdCard = { step: "take", giveGroup: b.dataset.group, giveSlot: b.dataset.slot }; showToast("Agora escolha o jogador do adversario pra roubar."); render(); });
     }
 
     function draftPlayerLabel(player) {
@@ -3146,53 +3302,6 @@
       el.tdPlayerList.querySelectorAll("[data-tp]").forEach(b => b.onclick = () => tdSelectPlayer(b.dataset.tp));
     }
 
-    function renderTdBoard(r) {
-      const teams = r.teams || {}, d = r.draft;
-      const order = d.order || [];
-      const activeId = tdActive(d);
-      const mode = state.tdCard;
-      el.tdBoardHint.textContent = mode
-        ? (mode === "bloqueio" ? "Toque num jogador SEU pra proteger"
-          : mode.step === "give" ? "Toque num jogador SEU pra oferecer"
-            : "Toque num jogador do adversario")
-        : `${order.length} humanos`;
-      el.tdBoard.innerHTML = order.map(id => {
-        const t = teams[id] || {};
-        const isMe = id === clientId;
-        const active = activeId === id;
-        const entries = tdTeamEntries(t);
-        entries.sort((a, b) => (a.p.seq || 0) - (b.p.seq || 0));
-        const hiddenSeq = tdHiddenSeq(entries, isMe, d);
-        const chips = entries.map(e => {
-          const hide = e.p.seq === hiddenSeq;
-          const prot = isMe && t.protectedId === e.p.id;
-          const label = hide ? "???" : (draftPlayerLabel(e.p) + (prot ? " 🛡" : ""));
-          let attr = null;
-          if (mode === "bloqueio" && isMe) attr = `data-card="bloq" data-pid="${e.p.id}"`;
-          else if (mode && mode.step === "give" && isMe) attr = `data-card="give" data-group="${e.g}" data-slot="${e.s}"`;
-          else if (mode && mode.step === "take" && !isMe && !hide) attr = `data-card="take" data-team="${id}" data-pid="${e.p.id}"`;
-          return attr ? `<button class="td-chip is-target" ${attr}>${label}</button>` : `<span class="td-chip ${prot ? "is-prot" : ""}">${label}</span>`;
-        }).join("");
-        return `<div class="td-team ${active ? "is-active" : ""}">
-          <div class="td-team-head"><strong>${t.apelido || "?"}${isMe ? " (voce)" : ""}</strong><span>${t.count || 0}/${TROSTER}</span></div>
-          <div class="td-chips">${chips || "<span class='td-chip empty'>—</span>"}</div>
-        </div>`;
-      }).join("") + renderTdActiveField(teams[activeId] || {}, d, activeId);
-      el.tdBoard.querySelectorAll('[data-card="bloq"]').forEach(b => b.onclick = () => { state.tdCard = null; tdUseBloqueio(b.dataset.pid); });
-      el.tdBoard.querySelectorAll('[data-card="give"]').forEach(b => b.onclick = () => { state.tdCard = { step: "take", giveGroup: b.dataset.group, giveSlot: b.dataset.slot }; showToast("Agora toque no jogador do adversario que quer roubar."); render(); });
-      el.tdBoard.querySelectorAll('[data-card="take"]').forEach(b => b.onclick = () => { const m = state.tdCard; state.tdCard = null; tdUseTroca(m.giveSlot, m.giveGroup, b.dataset.team, b.dataset.pid); });
-    }
-
-    function renderTdActiveField(team, draft, teamId) {
-      if (!teamId) return "";
-      const isMe = teamId === clientId;
-      const name = escapeHtml((team && (team.apelido || team.name)) || "Jogador");
-      return `<div class="td-live-field">
-        <div class="td-live-field-head"><span>Campo de ${name}${isMe ? " (voce)" : ""}</span><span>em escolha</span></div>
-        ${renderTdPublicField(team, draft, isMe)}
-      </div>`;
-    }
-
     function tdTeamEntries(team) {
       const entries = [];
       ["lineup", "bench"].forEach(g => {
@@ -3208,26 +3317,6 @@
       const turnFinished = count === TROSTER || count % TPERTURN === 0;
       if (!turnFinished) return null;
       return entries.reduce((m, e) => Math.max(m, e.p.seq || 0), 0);
-    }
-
-    function renderTdPublicField(team, draft, isMe) {
-      const form = formations[team.formation || "4-3-3"];
-      const rowIds = [...new Set(form.slots.map(s => s.row))].sort((a, b) => a - b);
-      const lineup = team.lineup || {}, bench = team.bench || {};
-      const hiddenSeq = tdHiddenSeq(tdTeamEntries(team), isMe, draft);
-      const slotHtml = (slot, group) => {
-        const p = group === "bench" ? bench[slot.id] : lineup[slot.id];
-        const hidden = p && p.seq === hiddenSeq;
-        const prot = p && isMe && team.protectedId === p.id;
-        const filled = p && !hidden;
-        const label = filled ? `${draftPlayerLabel(p)}${prot ? " 🛡" : ""}` : (group === "bench" ? "Banco" : slot.pos);
-        return `<div class="slot ${filled ? "is-filled" : ""} ${prot ? "is-protected" : ""}">${label}</div>`;
-      };
-      return `<div class="field td-public-field" style="grid-template-rows: repeat(${rowIds.length + 1}, 1fr)">
-        <div class="midline"></div><div class="circle"></div>
-        ${rowIds.map(row => `<div class="field-row">${form.slots.filter(s => s.row === row).map(s => slotHtml(s, "lineup")).join("")}</div>`).join("")}
-        <div class="field-row td-bench-row">${benchSlots.map(b => slotHtml(b, "bench")).join("")}</div>
-      </div>`;
     }
 
     function renderTdCards(myTeam, myTurn) {
