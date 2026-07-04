@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rei da Copa - Exemplos visuais</title>
+  <style>
+    :root {
+      --page-bg: oklch(0.08 0 0);
+      --page-ink: oklch(0.98 0 0);
+      --muted: oklch(0.76 0.01 240);
+      --line: oklch(0.28 0.01 240);
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --display: "Arial Narrow", "Aptos Display", Impact, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page-bg);
+      color: var(--page-ink);
+      font-family: var(--font);
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-size: 28px;
+      line-height: 1.05;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .intro {
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px;
+      margin-top: 28px;
+      align-items: start;
+    }
+
+    .concept {
+      display: grid;
+      gap: 12px;
+    }
+
+    .concept h2 {
+      font-family: var(--display);
+      font-size: 16px;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .concept p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .phone {
+      width: min(100%, 310px);
+      aspect-ratio: 390 / 844;
+      margin: 0 auto;
+      border: 1px solid oklch(0.34 0.01 240);
+      border-radius: 26px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 8px 8px oklch(0 0 0 / 0.28);
+    }
+
+    .screen {
+      height: 100%;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .topbar,
+    .row,
+    .scoreline,
+    .actions,
+    .chips {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .brand {
+      font-family: var(--display);
+      font-weight: 900;
+      letter-spacing: 0;
+      font-size: 18px;
+      text-transform: uppercase;
+    }
+
+    .mini {
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.78;
+    }
+
+    .pill,
+    .button,
+    .chip {
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 11px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .pill,
+    .chip {
+      padding: 8px 9px;
+    }
+
+    .button {
+      min-height: 44px;
+      padding: 0 14px;
+      border: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .draw {
+      padding: 14px;
+      border-radius: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .draw-title {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.72;
+    }
+
+    .team {
+      font-family: var(--display);
+      font-size: 27px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .tokens {
+      display: flex;
+      gap: 5px;
+    }
+
+    .token {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .player-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .player {
+      min-height: 52px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 38px 1fr 42px;
+      align-items: center;
+      gap: 8px;
+      border-radius: 12px;
+    }
+
+    .num {
+      font-family: var(--display);
+      font-size: 18px;
+      font-weight: 950;
+      text-align: center;
+    }
+
+    .name {
+      font-size: 14px;
+      font-weight: 850;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pos {
+      font-size: 10px;
+      font-weight: 800;
+      opacity: 0.72;
+    }
+
+    .rate {
+      font-family: var(--display);
+      font-size: 21px;
+      font-weight: 950;
+      text-align: right;
+    }
+
+    .field {
+      min-height: 210px;
+      flex: 1;
+      border-radius: 16px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .field::before,
+    .field::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border: 1px solid currentColor;
+      opacity: 0.22;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    .field::after {
+      inset: 48% 10px auto;
+      height: 1px;
+      border: 0;
+      background: currentColor;
+      border-radius: 0;
+    }
+
+    .lineup {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 8px;
+    }
+
+    .disc {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .bottom {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .broadcast .screen {
+      background: oklch(0.12 0.02 235);
+      color: oklch(0.98 0 0);
+    }
+
+    .broadcast .draw,
+    .broadcast .player {
+      background: oklch(0.18 0.03 235);
+      border: 1px solid oklch(0.31 0.06 230);
+    }
+
+    .broadcast .pill,
+    .broadcast .chip {
+      background: oklch(0.24 0.05 230);
+      color: oklch(0.93 0.03 215);
+    }
+
+    .broadcast .button {
+      background: oklch(0.58 0.18 150);
+      color: oklch(0.08 0.01 150);
+    }
+
+    .broadcast .token,
+    .broadcast .disc {
+      background: oklch(0.78 0.18 145);
+      color: oklch(0.12 0.02 235);
+    }
+
+    .broadcast .field {
+      background: oklch(0.35 0.11 158);
+      color: oklch(0.96 0.02 150);
+    }
+
+    .cards .screen {
+      background: oklch(0.09 0.01 40);
+      color: oklch(0.98 0.02 92);
+    }
+
+    .cards .draw {
+      background: oklch(0.19 0.04 62);
+      border: 1px solid oklch(0.68 0.15 78);
+    }
+
+    .cards .player {
+      background: oklch(0.15 0.02 55);
+      border: 1px solid oklch(0.31 0.05 70);
+    }
+
+    .cards .pill,
+    .cards .chip {
+      background: oklch(0.28 0.06 70);
+      color: oklch(0.95 0.08 86);
+    }
+
+    .cards .button {
+      background: oklch(0.69 0.16 78);
+      color: oklch(0.10 0.01 55);
+    }
+
+    .cards .token,
+    .cards .disc {
+      background: oklch(0.76 0.17 82);
+      color: oklch(0.11 0.01 48);
+    }
+
+    .cards .field {
+      background: oklch(0.25 0.08 145);
+      color: oklch(0.96 0.02 100);
+    }
+
+    .brazil .screen {
+      background: oklch(0.98 0 0);
+      color: oklch(0.15 0.03 245);
+    }
+
+    .brazil .draw {
+      background: oklch(0.91 0.16 100);
+      color: oklch(0.16 0.04 235);
+    }
+
+    .brazil .player {
+      background: oklch(0.96 0.01 245);
+      border: 1px solid oklch(0.84 0.02 245);
+    }
+
+    .brazil .pill,
+    .brazil .chip {
+      background: oklch(0.21 0.09 248);
+      color: oklch(0.98 0 0);
+    }
+
+    .brazil .button {
+      background: oklch(0.58 0.18 145);
+      color: oklch(0.99 0 0);
+    }
+
+    .brazil .token,
+    .brazil .disc {
+      background: oklch(0.21 0.09 248);
+      color: oklch(0.99 0 0);
+    }
+
+    .brazil .field {
+      background: oklch(0.60 0.17 145);
+      color: oklch(0.98 0 0);
+    }
+
+    .knockout .screen {
+      background: oklch(0.07 0 0);
+      color: oklch(0.97 0 0);
+    }
+
+    .knockout .draw {
+      background: oklch(0.17 0.01 0);
+      border: 1px solid oklch(0.58 0.18 28);
+    }
+
+    .knockout .player {
+      background: oklch(0.13 0 0);
+      border: 1px solid oklch(0.28 0 0);
+    }
+
+    .knockout .pill,
+    .knockout .chip {
+      background: oklch(0.22 0 0);
+      color: oklch(0.90 0.02 28);
+    }
+
+    .knockout .button {
+      background: oklch(0.58 0.19 28);
+      color: oklch(0.99 0 0);
+    }
+
+    .knockout .token,
+    .knockout .disc {
+      background: oklch(0.62 0.18 28);
+      color: oklch(0.99 0 0);
+    }
+
+    .knockout .field {
+      background: oklch(0.20 0.05 160);
+      color: oklch(0.96 0 0);
+    }
+
+    @media (max-width: 680px) {
+      .shell {
+        width: min(100% - 20px, 390px);
+        padding-top: 18px;
+      }
+
+      header {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>Rei da Copa: exemplos visuais</h1>
+      </div>
+      <p class="intro">Quatro caminhos para um jogo feito primeiro para telefone. Estes mockups mostram linguagem, ritmo de tela e energia visual, nao sao o produto final.</p>
+    </header>
+
+    <section class="board" aria-label="Exemplos visuais">
+      <article class="concept">
+        <div>
+          <h2>Transmissao Real</h2>
+          <p>App esportivo moderno: placar ao vivo, leitura rapida e simulacao com cara de central de jogo.</p>
+        </div>
+        <div class="phone broadcast">
+          <div class="screen">
+            <div class="topbar">
+              <div class="brand">Rei da Copa</div>
+              <div class="pill">4/11 · 82</div>
+            </div>
+            <div class="draw">
+              <div class="row">
+                <span class="draw-title">Saiu agora</span>
+                <span class="tokens"><span class="token"></span><span class="token"></span><span class="token"></span></span>
+              </div>
+              <div class="team">Brasil 2002</div>
+              <div class="chips"><span class="chip">Trocar time</span><span class="chip">Trocar ano</span></div>
+            </div>
+            <div class="player-list">
+              <div class="player"><div class="num">9</div><div><div class="name">Ronaldo</div><div class="pos">CA · Craque</div></div><div class="rate">96</div></div>
+              <div class="player"><div class="num">10</div><div><div class="name">Rivaldo</div><div class="pos">MEI/PE</div></div><div class="rate">92</div></div>
+            </div>
+            <div class="field">
+              <div class="lineup"><span class="disc">RIV</span><span class="disc">RON</span><span class="disc">R10</span></div>
+              <div class="lineup"><span class="disc">JUN</span><span class="disc">GIL</span><span class="disc">KLE</span></div>
+              <div class="lineup"><span class="disc">R.C</span><span class="disc">LUC</span><span class="disc">EDM</span><span class="disc">CAF</span></div>
+              <div class="lineup"><span class="disc">MAR</span></div>
+            </div>
+            <div class="bottom"><button class="button">Rolar</button><button class="button">Campo</button></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="concept">
+        <div>
+          <h2>Cartas de Campeao</h2>
+          <p>Mais videogame e colecionavel: raridade, brilho de carta, jogadores como premio do sorteio.</p>
+        </div>
+        <div class="phone cards">
+          <div class="screen">
+            <div class="topbar">
+              <div class="brand">Rei da Copa</div>
+              <div class="pill">Elite</div>
+            </div>
+            <div class="draw">
+              <div class="row">
+                <span class="draw-title">Pacote aberto</span>
+                <span class="tokens"><span class="token"></span><span class="token"></span><span class="token"></span></span>
+              </div>
+              <div class="team">Franca 1998</div>
+              <div class="chips"><span class="chip">Lenda +2</span><span class="chip">Quimica 7</span></div>
+            </div>
+            <div class="player-list">
+              <div class="player"><div class="num">10</div><div><div class="name">Zidane</div><div class="pos">MEI · Lenda</div></div><div class="rate">97</div></div>
+              <div class="player"><div class="num">16</div><div><div class="name">Barthez</div><div class="pos">GOL</div></div><div class="rate">88</div></div>
+            </div>
+            <div class="field">
+              <div class="lineup"><span class="disc">88</span><span class="disc">97</span><span class="disc">91</span></div>
+              <div class="lineup"><span class="disc">84</span><span class="disc">90</span><span class="disc">86</span></div>
+              <div class="lineup"><span class="disc">LD</span><span class="disc">ZAG</span><span class="disc">ZAG</span><span class="disc">LE</span></div>
+              <div class="lineup"><span class="disc">GOL</span></div>
+            </div>
+            <div class="bottom"><button class="button">Escolher</button><button class="button">Trocar</button></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="concept">
+        <div>
+          <h2>Brasil contra o Mundo</h2>
+          <p>Narrativa forte: montar uma base brasileira e desafiar potencias historicas em campanha curta.</p>
+        </div>
+        <div class="phone brazil">
+          <div class="screen">
+            <div class="topbar">
+              <div class="brand">Rei da Copa</div>
+              <div class="pill">Mundo 3/7</div>
+            </div>
+            <div class="draw">
+              <div class="row">
+                <span class="draw-title">Proximo rival</span>
+                <span class="tokens"><span class="token"></span><span class="token"></span><span class="token"></span></span>
+              </div>
+              <div class="team">Brasil x Italia</div>
+              <div class="chips"><span class="chip">Atacar</span><span class="chip">Segurar</span></div>
+            </div>
+            <div class="scoreline"><strong>Pressao</strong><span class="mini">BR 63% · ITA 37%</span></div>
+            <div class="field">
+              <div class="lineup"><span class="disc">Vini</span><span class="disc">9</span><span class="disc">Raph</span></div>
+              <div class="lineup"><span class="disc">10</span><span class="disc">8</span><span class="disc">5</span></div>
+              <div class="lineup"><span class="disc">LE</span><span class="disc">ZAG</span><span class="disc">ZAG</span><span class="disc">LD</span></div>
+              <div class="lineup"><span class="disc">1</span></div>
+            </div>
+            <div class="player-list">
+              <div class="player"><div class="num">67'</div><div><div class="name">Gol do Rei</div><div class="pos">Assistencia do camisa 10</div></div><div class="rate">1-0</div></div>
+            </div>
+            <div class="bottom"><button class="button">Avancar</button><button class="button">Auto</button></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="concept">
+        <div>
+          <h2>Noite de Mata-Mata</h2>
+          <p>Escuro, tenso e dramatico: ideal para clubes historicos, Libertadores, Champions ou fases finais.</p>
+        </div>
+        <div class="phone knockout">
+          <div class="screen">
+            <div class="topbar">
+              <div class="brand">Rei da Copa</div>
+              <div class="pill">Semi</div>
+            </div>
+            <div class="draw">
+              <div class="row">
+                <span class="draw-title">Ao vivo · 74'</span>
+                <span class="mini">Pressione para decidir</span>
+              </div>
+              <div class="team">1 - 1</div>
+              <div class="chips"><span class="chip">Contra-ataque</span><span class="chip">Tudo ou nada</span></div>
+            </div>
+            <div class="field">
+              <div class="lineup"><span class="disc">PE</span><span class="disc">CA</span><span class="disc">PD</span></div>
+              <div class="lineup"><span class="disc">10</span><span class="disc">8</span></div>
+              <div class="lineup"><span class="disc">5</span><span class="disc">4</span><span class="disc">3</span></div>
+              <div class="lineup"><span class="disc">1</span></div>
+            </div>
+            <div class="player-list">
+              <div class="player"><div class="num">!</div><div><div class="name">Penalti marcado</div><div class="pos">Escolha o batedor</div></div><div class="rate">90</div></div>
+              <div class="player"><div class="num">10</div><div><div class="name">Camisa 10</div><div class="pos">Frio · 93%</div></div><div class="rate">93</div></div>
+            </div>
+            <div class="bottom"><button class="button">Bater</button><button class="button">Trocar</button></div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
