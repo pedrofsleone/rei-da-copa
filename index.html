@@ -1849,9 +1849,10 @@
       const players = net.room.players || {};
       const ids = Object.keys(players);
       const c = cfgOr(net.room.config);
+      const teams = teamCount(c);
       const allReady = ids.length >= 1 && ids.every(id => players[id].ready);
       if (!allReady) { showToast("Todos precisam ficar prontos."); return; }
-      if (c.fill === "humanos" && ids.length < c.size) { showToast(`Faltam ${c.size - ids.length} jogadores.`); return; }
+      if (c.fill === "humanos" && ids.length < teams) { showToast(`Faltam ${teams - ids.length} jogadores.`); return; }
       // Fase C (montar os times / draft) entra aqui na proxima etapa.
       showToast("Montar os times (Fase C) chega na proxima etapa.");
     }
@@ -1871,18 +1872,28 @@
       el.multiStatus.innerHTML = netReady() ? "" : `<div class="hint">Conectando ao servidor...</div>`;
     }
 
-    const FORMAT_LABEL = { matamata: "Mata-mata", grupos: "Fase de grupos", perso: "Personalizado" };
+    const FORMAT_LABEL = { matamata: "Mata-mata", grupos: "Fase de grupos" };
+    const PHASE_OPTIONS = [{ v: 32, l: "16avos" }, { v: 16, l: "Oitavas" }, { v: 8, l: "Quartas" }, { v: 4, l: "Semi" }, { v: 2, l: "Final" }];
+    const PHASE_LABEL = { 32: "16avos", 16: "Oitavas", 8: "Quartas", 4: "Semi", 2: "Final" };
 
     function cfgOr(cfg) {
       cfg = cfg || {};
       return {
-        format: cfg.format || "grupos",
+        format: cfg.format === "matamata" ? "matamata" : "grupos",
+        knockoutPhase: cfg.knockoutPhase || 16,
         size: cfg.size || 16,
+        groupSize: cfg.groupSize || 4,
+        advance: cfg.advance || 2,
+        rounds: cfg.rounds || 3,
         fill: cfg.fill || "cpu",
         experience: cfg.experience || "assistir",
-        groupSize: cfg.groupSize || 4,
-        advance: cfg.advance || 2
+        spread: cfg.spread !== false
       };
+    }
+
+    // total de times do torneio: no mata-mata e o tamanho do chaveamento; nos grupos e o "times".
+    function teamCount(c) {
+      return c.format === "matamata" ? c.knockoutPhase : c.size;
     }
 
     function cfgSegRow(label, key, options, current) {
@@ -1894,29 +1905,40 @@
 
     function configEditorHtml(c) {
       let html = `<div class="section-head"><h2 class="section-title">Campeonato</h2><span class="hint">Voce e o anfitriao</span></div>`;
-      html += cfgSegRow("Formato", "format", [{ v: "matamata", l: "Mata-mata" }, { v: "grupos", l: "Grupos" }, { v: "perso", l: "Person." }], c.format);
-      html += cfgSegRow("Times", "size", [{ v: 8, l: "8" }, { v: 16, l: "16" }, { v: 32, l: "32" }], c.size);
-      html += cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
-      html += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
-      if (c.format === "perso") {
+      html += cfgSegRow("Formato", "format", [{ v: "matamata", l: "Mata-mata" }, { v: "grupos", l: "Fase de grupos" }], c.format);
+      if (c.format === "matamata") {
+        html += cfgSegRow("Fase (chaveamento)", "knockoutPhase", PHASE_OPTIONS, c.knockoutPhase);
+        html += `<div class="sync-line">Eliminatoria direta com ${c.knockoutPhase} times.</div>`;
+      } else {
+        html += cfgSegRow("Times", "size", [{ v: 8, l: "8" }, { v: 16, l: "16" }, { v: 32, l: "32" }], c.size);
         html += cfgSegRow("Tamanho do grupo", "groupSize", [{ v: 3, l: "3" }, { v: 4, l: "4" }, { v: 5, l: "5" }, { v: 6, l: "6" }], c.groupSize);
         html += cfgSegRow("Quantos passam", "advance", [{ v: 1, l: "1" }, { v: 2, l: "2" }, { v: 3, l: "3" }], c.advance);
-      } else if (c.format === "grupos") {
-        html += `<div class="sync-line">Grupos de 4, 3 jogos, os 2 melhores passam.</div>`;
-      } else {
-        html += `<div class="sync-line">Eliminatoria direta (mata-mata).</div>`;
+        html += cfgSegRow("Rodadas no grupo", "rounds", [{ v: 3, l: "3" }, { v: 5, l: "5" }, { v: 7, l: "7" }, { v: 9, l: "9" }, { v: 11, l: "11" }, { v: 13, l: "13" }, { v: 15, l: "15" }], c.rounds);
+        html += cfgSegRow("Mata-mata final", "knockoutPhase", PHASE_OPTIONS, c.knockoutPhase);
+        const groups = Math.max(1, Math.floor(c.size / c.groupSize));
+        html += `<div class="sync-line">${groups} grupos de ${c.groupSize} · ${groups * c.advance} se classificam.</div>`;
       }
+      html += cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
+      html += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
+      html += cfgSegRow("Espalhar humanos", "spread", [{ v: "on", l: "Ligado" }, { v: "off", l: "Desligado" }], c.spread ? "on" : "off");
+      html += `<div class="sync-line">${c.spread ? "Humanos ficam o mais separados possivel." : "Distribuicao aleatoria dos humanos."}</div>`;
       return html;
     }
 
     function configReadonlyHtml(c) {
-      const rows = [
-        ["Formato", FORMAT_LABEL[c.format] || "Fase de grupos"],
-        ["Times", String(c.size)],
-        ["Vagas", c.fill === "humanos" ? "So humanos" : "Completar com CPU"],
-        ["Experiencia", c.experience === "interativo" ? "Interativo" : "Assistir"]
-      ];
-      if (c.format === "perso") { rows.push(["Grupo", String(c.groupSize)]); rows.push(["Passam", String(c.advance)]); }
+      const rows = [["Formato", FORMAT_LABEL[c.format]]];
+      if (c.format === "matamata") {
+        rows.push(["Fase", PHASE_LABEL[c.knockoutPhase] + ` (${c.knockoutPhase})`]);
+      } else {
+        rows.push(["Times", String(c.size)]);
+        rows.push(["Grupo", String(c.groupSize)]);
+        rows.push(["Passam", String(c.advance)]);
+        rows.push(["Rodadas", String(c.rounds)]);
+        rows.push(["Mata-mata", PHASE_LABEL[c.knockoutPhase]]);
+      }
+      rows.push(["Vagas", c.fill === "humanos" ? "So humanos" : "Completar com CPU"]);
+      rows.push(["Experiencia", c.experience === "interativo" ? "Interativo" : "Assistir"]);
+      rows.push(["Espalhar humanos", c.spread ? "Ligado" : "Desligado"]);
       return `<div class="section-head"><h2 class="section-title">Campeonato</h2><span class="hint">Definido pelo anfitriao</span></div>`
         + `<div class="cfg-readonly">` + rows.map(r => `<div class="cfg-ro-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("") + `</div>`;
     }
@@ -1930,8 +1952,9 @@
       const c = cfgOr(room && room.config);
       const isHost = room && room.host === clientId;
 
+      const teams = teamCount(c);
       el.lobbyCode.textContent = net.code;
-      el.lobbyModeHint.textContent = `${FORMAT_LABEL[c.format]} · ${c.size} times`;
+      el.lobbyModeHint.textContent = `${FORMAT_LABEL[c.format]} · ${teams} times`;
 
       // painel de configuracao (host edita, convidado le)
       el.lobbyConfigPanel.innerHTML = isHost ? configEditorHtml(c) : configReadonlyHtml(c);
@@ -1941,14 +1964,15 @@
             if (!netReady()) return;
             const key = btn.dataset.cfg;
             let val = btn.dataset.val;
-            if (key === "size" || key === "groupSize" || key === "advance") val = Number(val);
+            if (["size", "groupSize", "advance", "rounds", "knockoutPhase"].includes(key)) val = Number(val);
+            else if (key === "spread") val = val === "on";
             window.RC_NET.setConfig(net.code, { [key]: val });
           });
         });
       }
 
       // jogadores
-      el.lobbyPlayersCount.textContent = `${ids.length}/${c.size}`;
+      el.lobbyPlayersCount.textContent = `${ids.length}/${teams}`;
       el.lobbyPlayers.innerHTML = ids.length ? ids.map(id => {
         const pl = players[id];
         const me = id === clientId;
@@ -1964,12 +1988,12 @@
       el.readyBtn.textContent = me && me.ready ? "Cancelar pronto" : "Estou pronto";
 
       const allReady = ids.length >= 1 && ids.every(id => players[id].ready);
-      const enough = c.fill === "cpu" ? ids.length >= 1 : ids.length === c.size;
+      const enough = c.fill === "cpu" ? ids.length >= 1 : ids.length === teams;
       el.startBtn.hidden = !isHost;
       el.startBtn.disabled = !(allReady && enough);
       el.lobbyStatus.textContent =
         ids.length < 1 ? "..."
-          : (c.fill === "humanos" && ids.length < c.size) ? `Faltam ${c.size - ids.length} jogadores (modo so humanos).`
+          : (c.fill === "humanos" && ids.length < teams) ? `Faltam ${teams - ids.length} jogadores (modo so humanos).`
             : !allReady ? "Todos precisam ficar Prontos."
               : isHost ? "Todos prontos! Toque em Comecar." : "Todos prontos! Esperando o anfitriao.";
     }
@@ -2937,7 +2961,7 @@
           status: "lobby",
           host: player.id,
           createdAt: serverTimestamp(),
-          config: { format: "grupos", size: 16, fill: "cpu", experience: "assistir", groupSize: 4, advance: 2 },
+          config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true },
           players: { [player.id]: { apelido: player.apelido, ready: false, connected: true } }
         });
         attachPresence(code, player.id);
@@ -2948,7 +2972,8 @@
         if (!snap.exists()) throw new Error("not-found");
         const room = snap.val();
         const ids = Object.keys(room.players || {});
-        const cap = (room.config && room.config.size) || 16;
+        const cfg = room.config || {};
+        const cap = (cfg.format === "matamata" ? cfg.knockoutPhase : cfg.size) || 16;
         if (!ids.includes(player.id) && ids.length >= cap) throw new Error("full");
         await update(playerRef(code, player.id), { apelido: player.apelido, ready: false, connected: true });
         attachPresence(code, player.id);
