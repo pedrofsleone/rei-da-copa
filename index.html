@@ -1780,6 +1780,7 @@
       net: null,
       tourney: null,
       tdCard: null,      // modo de carta ativo: 'bloqueio' | {step:'give'} | {step:'take',giveGroup,giveSlot}
+      tdPick: null,      // escolha de posicao pendente: { playerId, options:[{group,slotId,pos}] }
       trocaSeen: 0
     };
 
@@ -2132,32 +2133,46 @@
       return o.starters.length > 0 || o.benchOpen.length > 0;
     }
 
-    function tdRoll() { if (!tdIsMyTurn()) return; state.draw = rollSquad(); state.rerolls = 3; render(); }
-    function tdReroll() { if (!tdIsMyTurn() || !state.draw || state.rerolls <= 0) return; state.rerolls--; state.draw = rollSquad({ notCountry: state.draw.country }); render(); }
+    function tdRoll() { if (!tdIsMyTurn()) return; state.draw = rollSquad(); state.rerolls = 3; state.tdPick = null; render(); }
+    function tdReroll() { if (!tdIsMyTurn() || !state.draw || state.rerolls <= 0) return; state.rerolls--; state.draw = rollSquad({ notCountry: state.draw.country }); state.tdPick = null; render(); }
 
-    function tdPick(playerId) {
+    // Tocar num jogador: calcula as posicoes possiveis. Se so tem 1, coloca direto; se tem varias, deixa escolher.
+    function tdSelectPlayer(playerId) {
       const r = tdRoom(); if (!r || !r.draft) return;
       if (!tdIsMyTurn()) { showToast("Nao e sua vez."); return; }
       const player = state.draw && state.draw.players.find(p => p.id === playerId);
       if (!player) return;
-      const team = tdMyTeam();
       if (tdTaken()[player.id]) { showToast("Ja foi escolhido."); return; }
+      const team = tdMyTeam();
       const o = tdOpenSlots(player, team);
-      let group, slotId, natural;
-      if (o.starters.length) { group = "lineup"; slotId = o.starters[0].id; natural = o.starters[0].pos; }
-      else if (o.benchOpen.length) { group = "bench"; slotId = o.benchOpen[0].id; natural = player.positions[0]; }
-      else { showToast("Sem vaga pra esse jogador."); return; }
+      const opts = [];
+      const seen = new Set();
+      o.starters.forEach(s => { if (!seen.has(s.pos)) { seen.add(s.pos); opts.push({ group: "lineup", slotId: s.id, pos: s.pos }); } });
+      if (o.benchOpen.length) opts.push({ group: "bench", slotId: o.benchOpen[0].id, pos: "Banco" });
+      if (!opts.length) { showToast("Sem vaga pra esse jogador."); return; }
+      if (opts.length === 1) { tdPlacePick(player, opts[0]); return; }
+      state.tdPick = { playerId, options: opts };
+      render();
+    }
+
+    // Coloca o jogador na posicao escolhida e reseta o cronometro (tempo POR ESCOLHA).
+    function tdPlacePick(player, opt) {
+      const r = tdRoom(); if (!r || !r.draft || !tdIsMyTurn()) return;
+      const team = tdMyTeam();
+      const natural = opt.group === "bench" ? player.positions[0] : opt.pos;
       const seq = (r.draft.seq || 0) + 1;
       const obj = { id: player.id, short: player.short, name: player.name, natural, rating: player.rating, seq };
+      const c = cfgOr(r.config);
       const u = {};
-      u["teams/" + clientId + "/" + group + "/" + slotId] = obj;
+      u["teams/" + clientId + "/" + opt.group + "/" + opt.slotId] = obj;
       u["teams/" + clientId + "/count"] = (team.count || 0) + 1;
       u["draft/taken/" + player.id] = clientId;
       u["draft/seq"] = seq;
       u["draft/pickInTurn"] = (r.draft.pickInTurn || 0) + 1;
+      u["draft/deadline"] = Date.now() + c.turnTime * 1000; // reinicia o tempo pra proxima escolha
       window.RC_NET.patch(state.net.code, u);
-      state.draw = null;
-      showToast(`${player.short} pra voce!`);
+      state.draw = null; state.tdPick = null;
+      showToast(`${player.short} no ${opt.pos}!`);
       render();
     }
 
@@ -2188,52 +2203,48 @@
       const r = tdRoom(); if (!r || !r.draft || r.draft.done) return;
       const left = Math.max(0, Math.ceil((r.draft.deadline - Date.now()) / 1000));
       if (el.tdTimer) el.tdTimer.textContent = left + "s";
-      if (isRoomHost(r) && Date.now() > r.draft.deadline + 800) hostAutoCompleteTurn(r);
+      if (isRoomHost(r) && Date.now() > r.draft.deadline + 800) hostTimeoutPick(r);
     }
 
-    // completa (auto) a vez do jogador ativo e avanca — cobre timeout e desconexao
-    function hostAutoCompleteTurn(room) {
+    // timeout: o host escolhe UMA vez pelo jogador ativo (tempo por escolha) e reseta o tempo;
+    // se completar o turno (ou o time encher), avanca. Cobre timeout e desconexao.
+    function hostTimeoutPick(room) {
       const d = room.draft; const active = tdActive(d);
       const teams = room.teams || {};
       const team = JSON.parse(JSON.stringify(teams[active] || {}));
-      const takenLocal = { ...(d.taken || {}) };
-      const toPick = picksThisTurn(d.round) - (d.pickInTurn || 0);
+      const takenLocal = d.taken || {};
+      const c = cfgOr(room.config);
       const pool = squads.flatMap(s => s.players.map(p => ({ id: p.id, short: p.short, name: p.name, positions: p.positions, rating: p.rating })))
         .sort((a, b) => b.rating - a.rating);
-      let seq = d.seq || 0, cnt = team.count || 0;
       const u = {};
-      for (let i = 0; i < toPick; i++) {
-        let done = false;
-        for (const p of pool) {
-          if (takenLocal[p.id]) continue;
-          const o = tdOpenSlots(p, team);
-          let group, slotId, natural;
-          if (o.starters.length) { group = "lineup"; slotId = o.starters[0].id; natural = o.starters[0].pos; }
-          else if (o.benchOpen.length) { group = "bench"; slotId = o.benchOpen[0].id; natural = p.positions[0]; }
-          else continue;
-          seq++; cnt++;
-          const obj = { id: p.id, short: p.short, name: p.name, natural, rating: p.rating, seq };
-          team[group] = team[group] || {}; team[group][slotId] = obj;
-          takenLocal[p.id] = active;
-          u["teams/" + active + "/" + group + "/" + slotId] = obj;
-          u["draft/taken/" + p.id] = active;
-          done = true; break;
-        }
-        if (!done) break;
+      let seq = d.seq || 0, cnt = team.count || 0, picked = false;
+      for (const p of pool) {
+        if (takenLocal[p.id]) continue;
+        const o = tdOpenSlots(p, team);
+        let group, slotId, natural;
+        if (o.starters.length) { group = "lineup"; slotId = o.starters[0].id; natural = o.starters[0].pos; }
+        else if (o.benchOpen.length) { group = "bench"; slotId = o.benchOpen[0].id; natural = p.positions[0]; }
+        else continue;
+        seq++; cnt++;
+        u["teams/" + active + "/" + group + "/" + slotId] = { id: p.id, short: p.short, name: p.name, natural, rating: p.rating, seq };
+        u["teams/" + active + "/count"] = cnt;
+        u["draft/taken/" + p.id] = active;
+        u["draft/seq"] = seq;
+        picked = true; break;
       }
-      u["teams/" + active + "/count"] = cnt;
-      u["draft/seq"] = seq;
-      const n = (d.order || []).length;
-      let round = d.round, turnIndex = d.turnIndex + 1;
-      if (turnIndex >= n) { turnIndex = 0; round += 1; }
-      const c = cfgOr(room.config);
-      if (round > TLASTROUND) {
-        window.RC_NET.patch(state.net.code, u);
-        finishDraft({ ...room, teams: { ...teams, [active]: team }, draft: { ...d, taken: takenLocal } });
-        return;
+      const newPickInTurn = (d.pickInTurn || 0) + (picked ? 1 : 0);
+      const need = picksThisTurn(d.round);
+      if (newPickInTurn >= need || cnt >= TROSTER) {
+        const n = (d.order || []).length;
+        let round = d.round, turnIndex = d.turnIndex + 1;
+        if (turnIndex >= n) { turnIndex = 0; round += 1; }
+        if (round > TLASTROUND) { window.RC_NET.patch(state.net.code, u); finishDraft(room); return; }
+        u["draft/round"] = round; u["draft/turnIndex"] = turnIndex; u["draft/pickInTurn"] = 0;
+        u["draft/deadline"] = Date.now() + c.turnTime * 1000;
+      } else {
+        u["draft/pickInTurn"] = newPickInTurn;
+        u["draft/deadline"] = Date.now() + c.turnTime * 1000; // novo tempo pra proxima escolha
       }
-      u["draft/round"] = round; u["draft/turnIndex"] = turnIndex; u["draft/pickInTurn"] = 0;
-      u["draft/deadline"] = Date.now() + c.turnTime * 1000;
       window.RC_NET.patch(state.net.code, u);
     }
 
@@ -2317,7 +2328,7 @@
       const activeId = tdActive(d);
       const need = picksThisTurn(d.round);
       const myTeam = teams[clientId] || {};
-      if (!myTurn) state.tdCard = null; // cartas so na sua vez
+      if (!myTurn) { state.tdCard = null; state.tdPick = null; } // acoes so na sua vez
       const activeName = (teams[activeId] && teams[activeId].apelido) || "?";
       el.tdTurnTitle.textContent = myTurn ? "Sua vez" : `Vez de ${activeName}`;
       el.tdTurnHint.textContent = myTurn ? `Pegue ${need} — feitos ${d.pickInTurn || 0}/${need}` : "Aguarde sua vez...";
@@ -2346,6 +2357,20 @@
 
     function renderTdPick(r, myTeam) {
       const taken = r.draft.taken || {};
+      // seletor de posicao (quando o jogador escolhido joga em mais de uma vaga aberta)
+      if (state.tdPick && state.draw) {
+        const player = state.draw.players.find(p => p.id === state.tdPick.playerId);
+        if (player) {
+          el.tdPickHint.textContent = "Escolha a posicao";
+          el.tdDrawCard.innerHTML = `<div class="td-choose"><strong>Onde por ${player.short}?</strong>
+            <div class="cfg-seg">${state.tdPick.options.map((o, i) => `<button class="choice-button" type="button" data-opt="${i}">${o.pos}</button>`).join("")}</div>
+            <button class="small-action" type="button" data-optcancel style="margin-top:8px;width:100%">Cancelar</button></div>`;
+          el.tdDrawCard.querySelectorAll("[data-opt]").forEach(b => b.onclick = () => tdPlacePick(player, state.tdPick.options[Number(b.dataset.opt)]));
+          el.tdDrawCard.querySelector("[data-optcancel]").onclick = () => { state.tdPick = null; render(); };
+          el.tdPlayerList.innerHTML = "";
+          return;
+        }
+      }
       if (!state.draw) {
         el.tdPickHint.textContent = "Role uma selecao";
         el.tdDrawCard.innerHTML = `<button class="swap-action multi-cta" id="tdRollBtn" type="button">Rolar selecao</button>`;
@@ -2366,7 +2391,7 @@
           <span class="player-detail">${p.positions.join("/")} · ${p.tag}</span></span>
           <span class="rating">${p.rating}</span></button>`;
       }).join("");
-      el.tdPlayerList.querySelectorAll("[data-tp]").forEach(b => b.onclick = () => tdPick(b.dataset.tp));
+      el.tdPlayerList.querySelectorAll("[data-tp]").forEach(b => b.onclick = () => tdSelectPlayer(b.dataset.tp));
     }
 
     function renderTdBoard(r) {
@@ -2420,7 +2445,7 @@
 
     function leaveTournament() {
       stopDraftTimer();
-      state.tdCard = null;
+      state.tdCard = null; state.tdPick = null;
       const code = state.tourney && state.tourney.code;
       state.tourney = null;
       if (code && netReady()) window.RC_NET.leave(code, clientId);
