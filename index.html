@@ -820,10 +820,15 @@
     }
 
     .room-poster .lobby-player {
-      display: grid;
-      grid-template-columns: 1.15fr 0.92fr 0.86fr;
-      gap: 4px;
+      display: flex;
       align-items: center;
+      gap: 4px;
+      /* neutralise the dark-theme .lobby-player box so the white pills
+         sit straight on the poster, no black backing */
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
     }
 
     .room-poster .lobby-player span {
@@ -833,19 +838,34 @@
       border-radius: 6px;
       background: oklch(0.995 0 0);
       color: var(--poster-ink);
-      padding: 0 5px;
+      padding: 0 7px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       text-overflow: ellipsis;
       font-family: var(--display);
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 950;
       line-height: 1;
       text-align: center;
       text-transform: uppercase;
       white-space: nowrap;
+    }
+
+    /* name grows and ellipsizes; status/role chips size to their text
+       so short labels never get clipped, even on 375px screens */
+    .room-poster .lobby-player .who {
+      flex: 1 1 auto;
+      min-width: 0;
+      justify-content: flex-start;
+      text-align: left;
+      text-overflow: ellipsis;
+    }
+
+    .room-poster .lobby-player .tag,
+    .room-poster .lobby-player .connection {
+      flex: 0 0 auto;
     }
 
     .room-poster .lobby-player.is-ready .tag {
@@ -4312,7 +4332,7 @@
         const isRoomHost = room && room.host === id;
         return `<div class="lobby-player ${pl.ready ? "is-ready" : ""}">
           <span class="who">${pl.apelido || "Jogador"}${me ? " (voce)" : ""}</span>
-          <span class="tag">${pl.ready ? "Status: pronto" : "Status: espera"}</span>
+          <span class="tag">${pl.ready ? "Pronto" : "Espera"}</span>
           <span class="connection">${isRoomHost ? "Anfitriao" : (pl.connected ? "Online" : "Conexao")}</span>
         </div>`;
       }).join("") : `<div class="empty-state">Aguardando jogadores...</div>`;
