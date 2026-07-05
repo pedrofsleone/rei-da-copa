@@ -291,18 +291,41 @@
       padding: 0;
     }
 
+    .home-poster-stack {
+      width: 100%;
+      min-height: 100dvh;
+      background: oklch(0.955 0.022 88);
+      scroll-snap-type: y proximity;
+    }
+
     .home-poster {
       position: relative;
       width: 100%;
       height: 100dvh;
       min-height: 100dvh;
       overflow: hidden;
+      scroll-snap-align: start;
+      background-color: oklch(0.955 0.022 88);
+      background-position: center top;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      isolation: isolate;
+    }
+
+    .home-poster.is-home {
       background:
         oklch(0.955 0.022 88)
         url("assets/home-poster.jpg")
         center top / 100% 100%
         no-repeat;
-      isolation: isolate;
+    }
+
+    .home-poster.is-draft {
+      background-image: url("assets/draft-poster.jpg");
+    }
+
+    .home-poster.is-tutorial {
+      background-image: url("assets/tutorial-poster.jpg");
     }
 
     .home-hotspot {
@@ -329,6 +352,27 @@
       top: 52.6%;
       width: 79.1%;
       height: 17.5%;
+    }
+
+    .home-hotspot.is-draft-confirm {
+      left: 23%;
+      top: 8.1%;
+      width: 55%;
+      height: 7.8%;
+    }
+
+    .home-hotspot.is-draft-play {
+      left: 66%;
+      top: 88.2%;
+      width: 22%;
+      height: 6.8%;
+    }
+
+    .home-hotspot.is-tutorial-play {
+      left: 25.5%;
+      top: 83.4%;
+      width: 49%;
+      height: 9.5%;
     }
 
     .home-hotspot:focus-visible {
@@ -1505,14 +1549,31 @@
     </header>
 
     <section class="view is-active home-screen" id="homeView" aria-label="Inicio">
-      <div class="home-poster" role="img" aria-label="Rei da Copa Temporada 2026, com arte de futebol em estilo poster e duas opcoes de jogo">
-        <h1 class="sr-only">Rei da Copa Temporada 2026</h1>
-        <button class="home-hotspot is-solo" id="homeCpuBtn" type="button" aria-label="Solo, CPU offline">
-          <span class="sr-only">Solo CPU Offline</span>
-        </button>
-        <button class="home-hotspot is-multi" id="openMultiBtn" type="button" aria-label="Multiplayer, jogue com os amigos">
-          <span class="sr-only">Multiplayer, jogue com os amigos</span>
-        </button>
+      <div class="home-poster-stack" aria-label="Galeria inicial Rei da Copa">
+        <div class="home-poster is-home" id="homeTop" role="img" aria-label="Rei da Copa Temporada 2026, com arte de futebol em estilo poster e duas opcoes de jogo">
+          <h1 class="sr-only">Rei da Copa Temporada 2026</h1>
+          <button class="home-hotspot is-solo" id="homeCpuBtn" type="button" aria-label="Solo, CPU offline">
+            <span class="sr-only">Solo CPU Offline</span>
+          </button>
+          <button class="home-hotspot is-multi" id="openMultiBtn" type="button" aria-label="Multiplayer, jogue com os amigos">
+            <span class="sr-only">Multiplayer, jogue com os amigos</span>
+          </button>
+        </div>
+        <section class="home-poster is-draft" role="img" aria-label="Referencia visual da tela de draft com campo, jogadores e confirmar selecao">
+          <h2 class="sr-only">Tela de draft</h2>
+          <button class="home-hotspot is-draft-confirm" type="button" data-scroll-home aria-label="Voltar ao topo para escolher Solo ou Multiplayer">
+            <span class="sr-only">Confirmar selecao, voltar ao topo</span>
+          </button>
+          <button class="home-hotspot is-draft-play" type="button" data-scroll-home aria-label="Voltar ao topo para escolher Solo ou Multiplayer">
+            <span class="sr-only">Jogar, voltar ao topo</span>
+          </button>
+        </section>
+        <section class="home-poster is-tutorial" role="img" aria-label="Referencia visual do tutorial do jogo com primeiros passos e botao vamos jogar">
+          <h2 class="sr-only">Tutorial do jogo</h2>
+          <button class="home-hotspot is-tutorial-play" type="button" data-scroll-home aria-label="Voltar ao topo para escolher Solo ou Multiplayer">
+            <span class="sr-only">Vamos jogar, voltar ao topo</span>
+          </button>
+        </section>
       </div>
     </section>
 
@@ -2346,6 +2407,9 @@
 
     el.openMultiBtn.addEventListener("click", openMulti);
     el.homeCpuBtn.addEventListener("click", goToSolo);
+    document.querySelectorAll("[data-scroll-home]").forEach(button => {
+      button.addEventListener("click", scrollHomeTop);
+    });
     el.draftHomeBtn.addEventListener("click", goHome);
     el.multiBackBtn.addEventListener("click", () => {
       state.screen = state.returnScreen || "home";
@@ -2363,6 +2427,14 @@
       stopAuto();
       state.screen = "draft";
       render();
+    }
+
+    function scrollHomeTop() {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.getElementById("homeTop")?.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start"
+      });
     }
     el.nicknameInput.addEventListener("input", () => {
       state.nickname = el.nicknameInput.value.trim().slice(0, 16);
