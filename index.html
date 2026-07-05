@@ -502,6 +502,445 @@
       font-weight: 850;
     }
 
+    body.is-room-poster-screen {
+      background: oklch(0.98 0.01 100);
+    }
+
+    body.is-room-poster-screen .app {
+      width: min(100%, 508px);
+      background: oklch(0.98 0.01 100);
+    }
+
+    body.is-room-poster-screen .topbar {
+      display: none;
+    }
+
+    #multiLobbyView.is-active {
+      display: block;
+      padding: 0;
+    }
+
+    .room-poster {
+      --poster-ink: oklch(0.08 0 0);
+      --poster-paper: oklch(0.985 0.01 96);
+      --poster-green: oklch(0.68 0.20 147);
+      position: relative;
+      min-height: 100dvh;
+      padding: 8px 8px calc(14px + var(--safe-bottom));
+      overflow: hidden;
+      color: var(--poster-ink);
+      background: var(--poster-paper);
+      font-family: var(--display);
+      isolation: isolate;
+    }
+
+    .room-poster::after {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      inset: 0 0 0 auto;
+      width: 47%;
+      background: url("assets/room-players.png") right top / cover no-repeat;
+      pointer-events: none;
+    }
+
+    .room-poster > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .room-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 5px;
+      align-items: stretch;
+      margin-bottom: 12px;
+    }
+
+    .room-tab {
+      min-height: 34px;
+      padding: 0 8px;
+      border: 3px solid var(--poster-ink);
+      border-radius: 6px;
+      background: oklch(0.995 0 0);
+      color: var(--poster-ink);
+      box-shadow: 3px 3px 0 var(--poster-ink);
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .room-tab.is-action {
+      cursor: pointer;
+    }
+
+    .room-tab.is-options {
+      padding-inline: 6px;
+    }
+
+    .room-exit-line {
+      width: 54%;
+      margin: 0 0 8px;
+      text-align: center;
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--poster-ink);
+    }
+
+    .room-column {
+      width: 54%;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .room-config-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .room-panel {
+      width: 100%;
+      border: 3px solid var(--poster-ink);
+      border-radius: 10px;
+      background: oklch(0.995 0 0);
+      box-shadow: 5px 5px 0 var(--poster-ink);
+      padding: 9px 9px 10px;
+    }
+
+    .room-panel-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .room-panel-title {
+      margin: 0;
+      color: var(--poster-ink);
+      font-family: var(--display);
+      font-size: 19px;
+      line-height: 0.95;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .room-panel-note {
+      color: var(--poster-ink);
+      font-size: 9px;
+      line-height: 1.1;
+      font-weight: 900;
+      text-align: right;
+      text-transform: uppercase;
+    }
+
+    .room-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 0.76fr 1.24fr;
+      gap: 5px;
+    }
+
+    .room-mini-box,
+    .room-code-box {
+      min-width: 0;
+      min-height: 40px;
+      border: 2px solid var(--poster-ink);
+      border-radius: 7px;
+      background: oklch(0.995 0 0);
+      padding: 5px 5px;
+      display: grid;
+      align-content: center;
+      gap: 2px;
+    }
+
+    .room-mini-box span,
+    .room-code-box span {
+      display: block;
+      color: var(--poster-ink);
+      font-size: 8px;
+      line-height: 1;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .room-mini-box strong,
+    .room-code-box strong {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--poster-ink);
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 950;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .room-code-box {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .room-code-box span {
+      grid-column: 1 / -1;
+    }
+
+    .room-code-box .lobby-code-value {
+      color: var(--poster-ink);
+      font-size: 14px;
+      letter-spacing: 0.03em;
+    }
+
+    .room-copy-button {
+      min-height: 24px;
+      padding: 0 5px;
+      border: 2px solid var(--poster-ink);
+      border-radius: 5px;
+      background: oklch(0.995 0 0);
+      color: var(--poster-ink);
+      font-family: var(--display);
+      font-size: 10px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .room-poster .field-label {
+      display: block;
+      margin: 7px 0 0;
+      color: var(--poster-ink);
+      font-family: var(--display);
+      font-size: 10px;
+      line-height: 1.05;
+      font-weight: 950;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .room-poster .cfg-seg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .room-poster .cfg-seg .choice-button {
+      flex: 1 1 64px;
+      min-width: 48px;
+      min-height: 27px;
+      padding: 0 5px;
+      border: 2px solid var(--poster-ink);
+      border-radius: 7px;
+      background: oklch(0.995 0 0);
+      color: var(--poster-ink);
+      font-family: var(--display);
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 950;
+      text-transform: uppercase;
+      white-space: normal;
+      box-shadow: none;
+    }
+
+    .room-poster .cfg-seg .choice-button.is-active {
+      background: var(--poster-green);
+      color: var(--poster-ink);
+    }
+
+    .room-poster .cfg-seg .choice-button:focus-visible,
+    .room-tab:focus-visible,
+    .room-copy-button:focus-visible,
+    .room-ready-button:focus-visible,
+    .room-start-button:focus-visible {
+      outline: 3px solid oklch(0.71 0.18 83);
+      outline-offset: 2px;
+    }
+
+    .room-poster .sync-line {
+      margin-top: 7px;
+      color: var(--poster-ink);
+      font-family: var(--font);
+      font-size: 10px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .room-poster .cfg-readonly {
+      display: grid;
+      gap: 5px;
+    }
+
+    .room-poster .cfg-ro-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 7px;
+      border: 2px solid var(--poster-ink);
+      border-radius: 7px;
+      background: oklch(0.995 0 0);
+      color: var(--poster-ink);
+      font-family: var(--display);
+      font-size: 10px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .room-poster .cfg-ro-row span {
+      color: var(--poster-ink);
+    }
+
+    .room-poster .lobby-players {
+      display: grid;
+      gap: 5px;
+    }
+
+    .room-poster .lobby-player {
+      display: grid;
+      grid-template-columns: 1.15fr 0.92fr 0.86fr;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .room-poster .lobby-player span {
+      min-height: 29px;
+      min-width: 0;
+      border: 2px solid var(--poster-ink);
+      border-radius: 6px;
+      background: oklch(0.995 0 0);
+      color: var(--poster-ink);
+      padding: 0 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: var(--display);
+      font-size: 9px;
+      font-weight: 950;
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .room-poster .lobby-player.is-ready .tag {
+      background: var(--poster-green);
+    }
+
+    .room-poster .empty-state {
+      border: 2px solid var(--poster-ink);
+      border-radius: 7px;
+      padding: 9px;
+      color: var(--poster-ink);
+      background: oklch(0.995 0 0);
+      font-family: var(--display);
+      font-size: 11px;
+      font-weight: 950;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .room-ready-stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .room-ready-button,
+    .room-start-button {
+      width: 100%;
+      min-height: 43px;
+      border: 3px solid var(--poster-ink);
+      border-radius: 8px;
+      background: var(--poster-green);
+      color: var(--poster-ink);
+      box-shadow: 5px 5px 0 var(--poster-ink);
+      font-family: var(--display);
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .room-start-button {
+      background: oklch(0.93 0.15 88);
+    }
+
+    .room-start-button:disabled {
+      background: oklch(0.82 0.01 100);
+      color: oklch(0.42 0 0);
+    }
+
+    .room-poster .room-status {
+      min-height: 22px;
+      color: var(--poster-ink);
+      font-family: var(--font);
+      font-size: 10px;
+      line-height: 1.25;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    @media (max-width: 420px) {
+      .room-poster {
+        padding-inline: 7px;
+      }
+
+      .room-poster::after {
+        width: 46%;
+      }
+
+      .room-column,
+      .room-exit-line {
+        width: 56%;
+      }
+
+      .room-tab {
+        min-height: 31px;
+        padding-inline: 5px;
+        font-size: 11px;
+        border-width: 2px;
+      }
+
+      .room-panel {
+        padding: 8px 8px 9px;
+        border-width: 2px;
+      }
+
+      .room-panel-title {
+        font-size: 17px;
+      }
+
+      .room-poster .cfg-seg .choice-button {
+        min-width: 48px;
+        font-size: 9px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .room-poster::after {
+        width: 41%;
+        opacity: 0.82;
+      }
+
+      .room-column,
+      .room-exit-line {
+        width: 63%;
+      }
+
+      .room-nav {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
     .multi-back {
       align-self: flex-start;
       background: transparent;
@@ -1775,7 +2214,7 @@
       <div class="multi-poster-entry" role="img" aria-label="Tela para criar sala ou entrar com codigo em estilo Copa do Mundo">
         <button class="multi-poster-back" id="multiBackBtn" type="button" aria-label="Voltar">←</button>
         <label class="multi-poster-field is-name">
-          <span class="sr-only">Nome da selecao</span>
+          <span class="sr-only">Nome da sala</span>
           <input class="text-input" id="nicknameInput" type="text" maxlength="16" placeholder="Digite o nome da sala..." autocomplete="off">
         </label>
         <button class="multi-poster-action is-create" id="createRoomBtn" type="button" aria-label="Criar sala">
@@ -1792,31 +2231,55 @@
       </div>
     </section>
     <section class="view" id="multiLobbyView" aria-label="Sala">
-      <button class="multi-back" id="lobbyLeaveBtn" type="button">← Sair da sala</button>
-      <section class="panel panel-pad">
-        <div class="section-head">
-          <h1 class="section-title">Sala</h1>
-          <span class="hint" id="lobbyModeHint">Torneio</span>
-        </div>
-        <div class="lobby-code">
-          <div>
-            <span class="lobby-code-label">Codigo da sala</span>
-            <strong class="lobby-code-value" id="lobbyCode">----</strong>
+      <div class="room-poster" role="region" aria-label="Sala de jogo">
+        <nav class="room-nav" aria-label="Sala de jogo">
+          <span class="room-tab">Rei da Copa</span>
+          <span class="room-tab">Sala de jogo</span>
+          <button class="room-tab is-action" id="lobbyLeaveBtn" type="button">&larr; Sair da sala</button>
+          <button class="room-tab is-options" type="button" aria-label="Opcoes">Opcoes</button>
+        </nav>
+        <div class="room-exit-line">&larr; Sair da sala</div>
+        <div class="room-column">
+          <section class="room-panel" aria-label="Dados da sala">
+            <div class="room-panel-head">
+              <h1 class="room-panel-title">Sala</h1>
+              <span class="room-panel-note" id="lobbyModeHint">Torneio</span>
+            </div>
+            <div class="room-info-grid">
+              <div class="room-mini-box">
+                <span>Nome da sala</span>
+                <strong id="lobbyRoomName">Sala</strong>
+              </div>
+              <div class="room-mini-box">
+                <span>Senha</span>
+                <strong>Aberta</strong>
+              </div>
+              <div class="room-code-box">
+                <span>Codigo</span>
+                <strong class="lobby-code-value" id="lobbyCode">----</strong>
+                <button class="room-copy-button" id="copyCodeBtn" type="button">Copiar</button>
+              </div>
+            </div>
+          </section>
+
+          <div class="room-config-stack" id="lobbyConfigPanel"></div>
+
+          <section class="room-panel" aria-label="Jogadores">
+            <div class="room-panel-head">
+              <h2 class="room-panel-title">Jogadores</h2>
+              <span class="room-panel-note" id="lobbyPlayersCount">0</span>
+            </div>
+            <div class="field-label">Jogadores</div>
+            <div class="lobby-players" id="lobbyPlayers"></div>
+          </section>
+
+          <div class="room-ready-stack">
+            <button class="room-ready-button" id="readyBtn" type="button">Estou pronto</button>
+            <button class="room-start-button" id="startBtn" type="button" hidden>Comecar</button>
+            <div class="room-status" id="lobbyStatus"></div>
           </div>
-          <button class="small-action" id="copyCodeBtn" type="button">Copiar</button>
         </div>
-      </section>
-      <section class="panel panel-pad" id="lobbyConfigPanel"></section>
-      <section class="panel panel-pad">
-        <div class="section-head">
-          <h2 class="section-title">Jogadores</h2>
-          <span class="hint" id="lobbyPlayersCount">0</span>
-        </div>
-        <div class="lobby-players" id="lobbyPlayers"></div>
-        <button class="swap-action multi-cta" id="readyBtn" type="button">Estou pronto</button>
-        <button class="swap-action" id="startBtn" type="button" hidden>Comecar</button>
-        <div class="sync-line" id="lobbyStatus"></div>
-      </section>
+      </div>
     </section>
 
     <section class="view" id="tourneyDraftView" aria-label="Draft do torneio">
@@ -2430,6 +2893,7 @@
       multiLobbyView: document.getElementById("multiLobbyView"),
       lobbyLeaveBtn: document.getElementById("lobbyLeaveBtn"),
       lobbyModeHint: document.getElementById("lobbyModeHint"),
+      lobbyRoomName: document.getElementById("lobbyRoomName"),
       lobbyCode: document.getElementById("lobbyCode"),
       copyCodeBtn: document.getElementById("copyCodeBtn"),
       lobbyConfigPanel: document.getElementById("lobbyConfigPanel"),
@@ -2534,9 +2998,9 @@
     }
 
     async function handleRoomAction(kind) {
-      if (!state.nickname) { showToast("Digite o nome da selecao primeiro."); el.nicknameInput.focus(); return; }
+      if (!state.nickname) { showToast("Digite o nome da sala primeiro."); el.nicknameInput.focus(); return; }
       if (!netReady()) { showToast("Conexao indisponivel. Recarregue a pagina."); return; }
-      const player = { id: clientId, apelido: state.nickname };
+      const player = { id: clientId, apelido: state.nickname, roomName: state.nickname };
       if (kind === "create") {
         let code = genRoomCode();
         try {
@@ -3741,27 +4205,37 @@
       return `<div class="field-label">${label}<div class="cfg-seg">${btns}</div></div>`;
     }
 
+    function roomPanelHtml(title, note, body, extraClass = "") {
+      return `<section class="room-panel ${extraClass}">
+        <div class="room-panel-head">
+          <h2 class="room-panel-title">${title}</h2>
+          <span class="room-panel-note">${note}</span>
+        </div>
+        ${body}
+      </section>`;
+    }
+
     function configEditorHtml(c) {
-      let html = `<div class="section-head"><h2 class="section-title">Campeonato</h2><span class="hint">Voce e o anfitriao</span></div>`;
-      html += cfgSegRow("Formato", "format", [{ v: "matamata", l: "Mata-mata" }, { v: "grupos", l: "Fase de grupos" }], c.format);
+      let campeonato = cfgSegRow("Formato", "format", [{ v: "matamata", l: "Mata-mata" }, { v: "grupos", l: "Fase de grupos" }], c.format);
       if (c.format === "matamata") {
-        html += cfgSegRow("Fase (chaveamento)", "knockoutPhase", PHASE_OPTIONS, c.knockoutPhase);
-        html += `<div class="sync-line">Eliminatoria direta com ${c.knockoutPhase} times.</div>`;
+        campeonato += cfgSegRow("Mata-mata final", "knockoutPhase", PHASE_OPTIONS, c.knockoutPhase);
+        campeonato += `<div class="sync-line">Eliminatoria direta com ${c.knockoutPhase} times.</div>`;
       } else {
-        html += cfgSegRow("Times", "size", [{ v: 8, l: "8" }, { v: 16, l: "16" }, { v: 32, l: "32" }], c.size);
-        html += cfgSegRow("Tamanho do grupo", "groupSize", [{ v: 3, l: "3" }, { v: 4, l: "4" }, { v: 5, l: "5" }, { v: 6, l: "6" }], c.groupSize);
-        html += cfgSegRow("Quantos passam", "advance", [{ v: 1, l: "1" }, { v: 2, l: "2" }, { v: 3, l: "3" }], c.advance);
-        html += cfgSegRow("Rodadas no grupo", "rounds", [{ v: 3, l: "3" }, { v: 5, l: "5" }, { v: 7, l: "7" }, { v: 9, l: "9" }, { v: 11, l: "11" }, { v: 13, l: "13" }, { v: 15, l: "15" }], c.rounds);
-        html += cfgSegRow("Mata-mata final", "knockoutPhase", PHASE_OPTIONS, c.knockoutPhase);
+        campeonato += cfgSegRow("Times", "size", [{ v: 8, l: "8 times" }, { v: 16, l: "16 times" }, { v: 32, l: "32 times" }], c.size);
+        campeonato += cfgSegRow("Tamanho do grupo", "groupSize", [{ v: 3, l: "Grupo 3" }, { v: 4, l: "Grupo 4" }, { v: 5, l: "Grupo 5" }, { v: 6, l: "Grupo 6" }], c.groupSize);
+        campeonato += cfgSegRow("Quantos passam", "advance", [{ v: 1, l: "1 time" }, { v: 2, l: "2 times" }, { v: 3, l: "3 times" }], c.advance);
+        campeonato += cfgSegRow("Rodadas no grupo", "rounds", [{ v: 3, l: "3 rodadas" }, { v: 5, l: "5 rodadas" }, { v: 7, l: "7 rodadas" }, { v: 9, l: "9 rodadas" }], c.rounds);
+        campeonato += cfgSegRow("Mata-mata final", "knockoutPhase", PHASE_OPTIONS, c.knockoutPhase);
         const groups = Math.max(1, Math.ceil(c.size / c.groupSize));
-        html += `<div class="sync-line">${groups} grupos de ${c.groupSize} · ${groups * c.advance} se classificam.</div>`;
+        campeonato += `<div class="sync-line">${groups} grupos de ${c.groupSize} · ${groups * c.advance} se classificam.</div>`;
       }
-      html += cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
-      html += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
-      html += cfgSegRow("Tempo por jogada", "turnTime", [{ v: 20, l: "20s" }, { v: 30, l: "30s" }, { v: 45, l: "45s" }, { v: 60, l: "60s" }], c.turnTime);
-      html += cfgSegRow("Espalhar humanos", "spread", [{ v: "on", l: "Ligado" }, { v: "off", l: "Desligado" }], c.spread ? "on" : "off");
-      html += `<div class="sync-line">${c.spread ? "Humanos ficam o mais separados possivel." : "Distribuicao aleatoria dos humanos."}</div>`;
-      return html;
+      let config = cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
+      config += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
+      config += cfgSegRow("Tempo por jogada", "turnTime", [{ v: 20, l: "20s" }, { v: 30, l: "30s" }, { v: 45, l: "45s" }, { v: 60, l: "60s" }], c.turnTime);
+      config += cfgSegRow("Espalhar humanos", "spread", [{ v: "on", l: "Ligado" }, { v: "off", l: "Desligado" }], c.spread ? "on" : "off");
+      config += `<div class="sync-line">${c.spread ? "Humanos ficam o mais separados possivel." : "Distribuicao aleatoria dos humanos."}</div>`;
+      return roomPanelHtml("Campeonato", "Voce e o anfitriao", campeonato, "room-campeonato-panel")
+        + roomPanelHtml("Config", "", config, "room-config-panel");
     }
 
     function configReadonlyHtml(c) {
@@ -3779,8 +4253,10 @@
       rows.push(["Experiencia", c.experience === "interativo" ? "Interativo" : "Assistir"]);
       rows.push(["Tempo/jogada", c.turnTime + "s"]);
       rows.push(["Espalhar humanos", c.spread ? "Ligado" : "Desligado"]);
-      return `<div class="section-head"><h2 class="section-title">Campeonato</h2><span class="hint">Definido pelo anfitriao</span></div>`
-        + `<div class="cfg-readonly">` + rows.map(r => `<div class="cfg-ro-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("") + `</div>`;
+      const body = `<div class="cfg-readonly">`
+        + rows.map(r => `<div class="cfg-ro-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("")
+        + `</div>`;
+      return roomPanelHtml("Campeonato", "Definido pelo anfitriao", body, "room-campeonato-panel");
     }
 
     function renderMultiLobby() {
@@ -3794,6 +4270,7 @@
 
       const teams = teamCount(c);
       el.lobbyCode.textContent = net.code;
+      if (el.lobbyRoomName) el.lobbyRoomName.textContent = (room && room.name) || state.nickname || "Sala";
       el.lobbyModeHint.textContent = `${FORMAT_LABEL[c.format]} · ${teams} times`;
 
       // painel de configuracao (host edita, convidado le)
@@ -3812,15 +4289,15 @@
       }
 
       // jogadores
-      el.lobbyPlayersCount.textContent = `${ids.length}/${teams}`;
+      el.lobbyPlayersCount.textContent = `${ids.length} / ${teams} jogadores`;
       el.lobbyPlayers.innerHTML = ids.length ? ids.map(id => {
         const pl = players[id];
         const me = id === clientId;
         const isRoomHost = room && room.host === id;
         return `<div class="lobby-player ${pl.ready ? "is-ready" : ""}">
-          <span class="dot ${pl.connected ? "on" : "off"}"></span>
-          <span class="who">${pl.apelido || "Jogador"}${me ? " (voce)" : ""}${isRoomHost ? " ·" : ""}</span>
-          <span class="tag">${isRoomHost ? "anfitriao · " : ""}${pl.ready ? "Pronto" : "Aguardando"}</span>
+          <span class="who">${pl.apelido || "Jogador"}${me ? " (voce)" : ""}</span>
+          <span class="tag">${pl.ready ? "Status: pronto" : "Status: espera"}</span>
+          <span class="connection">${isRoomHost ? "Anfitriao" : (pl.connected ? "Online" : "Conexao")}</span>
         </div>`;
       }).join("") : `<div class="empty-state">Aguardando jogadores...</div>`;
 
@@ -4378,6 +4855,7 @@
     function renderViews() {
       document.body.classList.toggle("is-home-screen", state.screen === "home");
       document.body.classList.toggle("is-multi-entry-screen", state.screen === "multiHome");
+      document.body.classList.toggle("is-room-poster-screen", state.screen === "multiLobby");
       el.homeView.classList.toggle("is-active", state.screen === "home");
       el.draftView.classList.toggle("is-active", state.screen === "draft");
       el.matchView.classList.toggle("is-active", state.screen === "match");
@@ -4825,6 +5303,7 @@
         await set(roomRef(code), {
           status: "lobby",
           host: player.id,
+          name: player.roomName || player.apelido || "Sala",
           createdAt: serverTimestamp(),
           config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true, turnTime: 30 },
           players: { [player.id]: { apelido: player.apelido, ready: false, connected: true } }
