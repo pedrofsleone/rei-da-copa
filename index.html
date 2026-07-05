@@ -286,7 +286,24 @@
       display: none;
     }
 
+    body.is-multi-entry-screen {
+      background: oklch(0.98 0.01 100);
+    }
+
+    body.is-multi-entry-screen .app {
+      background: oklch(0.98 0.01 100);
+    }
+
+    body.is-multi-entry-screen .topbar {
+      display: none;
+    }
+
     #homeView.is-active {
+      display: block;
+      padding: 0;
+    }
+
+    #multiHomeView.is-active {
       display: block;
       padding: 0;
     }
@@ -353,6 +370,136 @@
       clip: rect(0, 0, 0, 0);
       white-space: nowrap;
       border: 0;
+    }
+
+    .multi-poster-entry {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+      background:
+        oklch(0.98 0.01 100)
+        url("assets/multi-poster.jpg")
+        center top / 100% 100%
+        no-repeat;
+    }
+
+    .multi-poster-back {
+      position: absolute;
+      z-index: 3;
+      top: 10px;
+      left: 10px;
+      min-width: 38px;
+      min-height: 34px;
+      border: 2px solid oklch(0.08 0 0);
+      border-radius: 0;
+      background: oklch(0.99 0 0);
+      color: oklch(0.08 0 0);
+      font-family: var(--display);
+      font-size: 18px;
+      font-weight: 950;
+      line-height: 1;
+      box-shadow: 4px 4px 0 oklch(0.08 0 0);
+    }
+
+    .multi-poster-field {
+      position: absolute;
+      z-index: 3;
+      left: 25%;
+      width: 50.5%;
+      height: 4.7%;
+    }
+
+    .multi-poster-field.is-name {
+      top: 31.9%;
+    }
+
+    .multi-poster-field.is-code {
+      top: 66.8%;
+    }
+
+    .multi-poster-field .text-input {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border: 3px solid oklch(0.08 0 0);
+      border-radius: 2px;
+      background: oklch(0.99 0 0);
+      color: oklch(0.12 0 0);
+      padding: 0 10px;
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .multi-poster-field .text-input::placeholder {
+      color: oklch(0.34 0 0);
+      opacity: 1;
+    }
+
+    .multi-poster-field .code-input {
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .multi-poster-action {
+      position: absolute;
+      z-index: 3;
+      left: 25%;
+      width: 50.5%;
+      height: 5.9%;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .multi-poster-action.is-create {
+      top: 38.5%;
+    }
+
+    .multi-poster-action.is-join {
+      top: 73.2%;
+    }
+
+    .multi-poster-action:focus-visible,
+    .multi-poster-back:focus-visible,
+    .multi-poster-field .text-input:focus {
+      outline: 4px solid oklch(0.68 0.22 145);
+      outline-offset: 3px;
+    }
+
+    .multi-poster-action:disabled {
+      cursor: wait;
+      opacity: 0.45;
+    }
+
+    .multi-poster-status {
+      position: absolute;
+      z-index: 3;
+      left: 10%;
+      right: 10%;
+      bottom: 16px;
+      padding: 9px 10px;
+      border: 2px solid oklch(0.08 0 0);
+      background: oklch(0.99 0 0);
+      color: oklch(0.12 0 0);
+      font-size: 12px;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .multi-poster-status .hint {
+      color: oklch(0.12 0 0);
+      font-size: 12px;
+      font-weight: 850;
     }
 
     .multi-back {
@@ -1625,32 +1772,25 @@
     </section>
 
     <section class="view" id="multiHomeView" aria-label="Jogar com amigos">
-      <button class="multi-back" id="multiBackBtn" type="button">← Voltar ao jogo solo</button>
-      <section class="panel panel-pad">
-        <div class="section-head">
-          <h1 class="section-title">Jogar com amigos</h1>
-          <span class="hint">Final 1x1 online</span>
-        </div>
-        <label class="field-label">
-          Seu apelido
-          <input class="text-input" id="nicknameInput" type="text" maxlength="16" placeholder="Ex: Pedro" autocomplete="off">
+      <div class="multi-poster-entry" role="img" aria-label="Tela para criar sala ou entrar com codigo em estilo Copa do Mundo">
+        <button class="multi-poster-back" id="multiBackBtn" type="button" aria-label="Voltar">←</button>
+        <label class="multi-poster-field is-name">
+          <span class="sr-only">Nome da selecao</span>
+          <input class="text-input" id="nicknameInput" type="text" maxlength="16" placeholder="Digite o nome da sala..." autocomplete="off">
         </label>
-        <button class="swap-action multi-cta" id="createRoomBtn" type="button">Criar sala</button>
-      </section>
-      <section class="panel panel-pad">
-        <div class="section-head">
-          <h2 class="section-title">Entrar com codigo</h2>
-          <span class="hint">Peca o codigo pro amigo</span>
-        </div>
-        <label class="field-label">
-          Codigo da sala
-          <input class="text-input code-input" id="roomCodeInput" type="text" maxlength="6" placeholder="Ex: ABCD" autocomplete="off">
+        <button class="multi-poster-action is-create" id="createRoomBtn" type="button" aria-label="Criar sala">
+          Criar
+        </button>
+        <label class="multi-poster-field is-code">
+          <span class="sr-only">Codigo da sala</span>
+          <input class="text-input code-input" id="roomCodeInput" type="text" maxlength="6" placeholder="Digite o codigo..." autocomplete="off">
         </label>
-        <button class="swap-action multi-cta" id="joinRoomBtn" type="button">Entrar na sala</button>
-      </section>
-      <section class="panel panel-pad" id="multiStatus"></section>
+        <button class="multi-poster-action is-join" id="joinRoomBtn" type="button" aria-label="Entrar com codigo">
+          Entrar
+        </button>
+        <div class="multi-poster-status" id="multiStatus"></div>
+      </div>
     </section>
-
     <section class="view" id="multiLobbyView" aria-label="Sala">
       <button class="multi-back" id="lobbyLeaveBtn" type="button">← Sair da sala</button>
       <section class="panel panel-pad">
@@ -2394,7 +2534,7 @@
     }
 
     async function handleRoomAction(kind) {
-      if (!state.nickname) { showToast("Escolha um apelido primeiro."); el.nicknameInput.focus(); return; }
+      if (!state.nickname) { showToast("Digite o nome da selecao primeiro."); el.nicknameInput.focus(); return; }
       if (!netReady()) { showToast("Conexao indisponivel. Recarregue a pagina."); return; }
       const player = { id: clientId, apelido: state.nickname };
       if (kind === "create") {
@@ -4237,6 +4377,7 @@
 
     function renderViews() {
       document.body.classList.toggle("is-home-screen", state.screen === "home");
+      document.body.classList.toggle("is-multi-entry-screen", state.screen === "multiHome");
       el.homeView.classList.toggle("is-active", state.screen === "home");
       el.draftView.classList.toggle("is-active", state.screen === "draft");
       el.matchView.classList.toggle("is-active", state.screen === "match");
