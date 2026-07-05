@@ -2255,6 +2255,614 @@
           p("us94-meo", 1, "Meola", "MEO", ["GOL"], 78, "Paredao")
         ]
       },
+      {
+        key: "de-1990", country: "Alemanha", code: "DE", year: 1990, style: "Campea de Matthaus",
+        players: [
+          p("de90-mat", 10, "Matthaus", "MAT", ["MEI"], 88, "Capitao"),
+          p("de90-kli", 18, "Klinsmann", "KLI", ["CA"], 84, "Craque"),
+          p("de90-vol", 9, "Voller", "VOL", ["CA"], 83, "Faro"),
+          p("de90-has", 14, "Hassler", "HAS", ["MC"], 78, "Criacao"),
+          p("de90-tho", 8, "Thon", "THO", ["MC"], 76, "Passe"),
+          p("de90-lit", 7, "Littbarski", "LIT", ["PD"], 79, "Drible"),
+          p("de90-aug", 5, "Augenthaler", "AUG", ["ZAG"], 80, "Libero"),
+          p("de90-koh", 4, "Kohler", "KOH", ["ZAG"], 79, "Firme"),
+          p("de90-ber", 2, "Berthold", "BER", ["LD"], 76, "Ala"),
+          p("de90-bre", 3, "Brehme", "BRE", ["LE"], 82, "Penalti decisivo"),
+          p("de90-ill", 1, "Illgner", "ILL", ["GOL"], 79, "Seguro")
+        ]
+      },
+      {
+        key: "it-1990", country: "Italia", code: "IT", year: 1990, style: "Noites magicas",
+        players: [
+          p("it90-sch", 19, "Schillaci", "SCH", ["CA"], 82, "Artilheiro"),
+          p("it90-bag", 15, "R. Baggio", "BAG", ["MEI"], 82, "Talento"),
+          p("it90-via", 21, "Vialli", "VIA", ["CA"], 80, "Faro"),
+          p("it90-gia", 10, "Giannini", "GIA", ["MEI"], 78, "Criacao"),
+          p("it90-den", 8, "De Napoli", "DEN", ["VOL"], 76, "Motor"),
+          p("it90-don", 7, "Donadoni", "DON", ["PE"], 78, "Drible"),
+          p("it90-bar", 6, "Baresi", "BARE", ["ZAG"], 86, "Capitao"),
+          p("it90-fer", 5, "Ferri", "FER", ["ZAG"], 78, "Firme"),
+          p("it90-brg", 2, "Bergomi", "BRG", ["LD"], 78, "Ala"),
+          p("it90-mal", 3, "Maldini", "MAL", ["LE"], 82, "Elegante"),
+          p("it90-zen", 1, "Zenga", "ZEN", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "br-1990", country: "Brasil", code: "BR", year: 1990, style: "Selecao de Lazaroni",
+        players: [
+          p("br90-car", 9, "Careca", "CAR", ["CA"], 82, "Craque"),
+          p("br90-mul", 11, "Muller", "MUL", ["CA"], 76, "Veloz"),
+          p("br90-val", 10, "Valdo", "VAL", ["MEI"], 77, "Criacao"),
+          p("br90-ale", 8, "Alemao", "ALE", ["MC"], 78, "Motor"),
+          p("br90-sil", 20, "Silas", "SIL", ["MC"], 74, "Passe"),
+          p("br90-dun", 8, "Dunga", "DUN", ["VOL"], 80, "Capitao"),
+          p("br90-rgo", 3, "Ricardo Gomes", "RGO", ["ZAG"], 78, "Elegante"),
+          p("br90-moz", 4, "Mozer", "MOZ", ["ZAG"], 78, "Firme"),
+          p("br90-jor", 2, "Jorginho", "JOR", ["LD"], 76, "Ala"),
+          p("br90-bra", 6, "Branco", "BRA", ["LE"], 77, "Canhao"),
+          p("br90-taf", 1, "Taffarel", "TAF", ["GOL"], 80, "Reflexo")
+        ]
+      },
+      {
+        key: "nl-1990", country: "Holanda", code: "NL", year: 1990, style: "Trio holandes",
+        players: [
+          p("nl90-vba", 12, "Van Basten", "VBA", ["CA"], 88, "Cisne"),
+          p("nl90-gul", 10, "Gullit", "GUL", ["MEI"], 86, "Craque"),
+          p("nl90-rij", 8, "Rijkaard", "RIJ", ["VOL"], 84, "Completo"),
+          p("nl90-kie", 9, "Kieft", "KIE", ["CA"], 74, "Area"),
+          p("nl90-wou", 6, "Wouters", "WOU", ["MC"], 76, "Marcacao"),
+          p("nl90-wit", 7, "R. Witschge", "WIT", ["MEI"], 74, "Passe"),
+          p("nl90-koe", 4, "R. Koeman", "KOE", ["ZAG"], 82, "Canhao"),
+          p("nl90-tig", 3, "Van Tiggelen", "TIG", ["ZAG"], 74, "Firme"),
+          p("nl90-aer", 2, "Van Aerle", "AER", ["LD"], 74, "Ala"),
+          p("nl90-win", 5, "Winter", "WIN", ["LE"], 74, "Apoio"),
+          p("nl90-vbr", 1, "Van Breukelen", "VBR", ["GOL"], 78, "Seguro")
+        ]
+      },
+      {
+        key: "yu-1990", country: "Iugoslavia", code: "YU", year: 1990, style: "Talento dos Balcas",
+        players: [
+          p("yu90-sto", 10, "Stojkovic", "STO", ["MEI"], 84, "Maestro"),
+          p("yu90-sav", 8, "Savicevic", "SAV", ["MEI"], 80, "Genio"),
+          p("yu90-pro", 6, "Prosinecki", "PRO", ["MEI"], 79, "Joia"),
+          p("yu90-pan", 9, "Pancev", "PAN", ["CA"], 78, "Matador"),
+          p("yu90-vuj", 11, "Z. Vujovic", "VUJ", ["CA"], 76, "Faro"),
+          p("yu90-joz", 4, "Jozic", "JOZ", ["VOL"], 74, "Motor"),
+          p("yu90-had", 5, "Hadzibegic", "HAD", ["ZAG"], 76, "Firme"),
+          p("yu90-spa", 3, "Spasic", "SPA", ["ZAG"], 74, "Solido"),
+          p("yu90-sta", 2, "Stanojkovic", "STA", ["LD"], 74, "Ala"),
+          p("yu90-jar", 7, "Jarni", "JAR", ["LE"], 74, "Apoio"),
+          p("yu90-ivk", 1, "Ivkovic", "IVK", ["GOL"], 76, "Reflexo")
+        ]
+      },
+      {
+        key: "en-1990", country: "Inglaterra", code: "EN", year: 1990, style: "Lagrimas de Gazza",
+        players: [
+          p("en90-lin", 10, "Lineker", "LIN", ["CA"], 85, "Artilheiro"),
+          p("en90-gaz", 19, "Gascoigne", "GAZ", ["MEI"], 84, "Genio"),
+          p("en90-bar", 11, "J. Barnes", "BAR", ["PE"], 80, "Drible"),
+          p("en90-wad", 7, "Waddle", "WAD", ["PD"], 79, "Talento"),
+          p("en90-pla", 8, "Platt", "PLA", ["MC"], 79, "Chegada"),
+          p("en90-bea", 9, "Beardsley", "BEA", ["MEI"], 78, "Criacao"),
+          p("en90-but", 6, "Butcher", "BUT", ["ZAG"], 78, "Duro"),
+          p("en90-wlk", 5, "D. Walker", "WLK", ["ZAG"], 78, "Veloz"),
+          p("en90-par", 2, "Parker", "PAR", ["LD"], 74, "Ala"),
+          p("en90-pea", 3, "Pearce", "PEA", ["LE"], 79, "Canhao"),
+          p("en90-shi", 1, "Shilton", "SHI", ["GOL"], 82, "Veterano")
+        ]
+      },
+      {
+        key: "ar-1990", country: "Argentina", code: "AR", year: 1990, style: "Final defensiva",
+        players: [
+          p("ar90-mar", 10, "Maradona", "MAR", ["MEI"], 88, "Genio"),
+          p("ar90-can", 7, "Caniggia", "CAN", ["PE"], 80, "Velocidade"),
+          p("ar90-bur", 15, "Burruchaga", "BUR", ["MEI"], 78, "Criacao"),
+          p("ar90-dez", 9, "Dezotti", "DEZ", ["CA"], 74, "Area"),
+          p("ar90-bas", 12, "Basualdo", "BAS", ["MC"], 74, "Motor"),
+          p("ar90-giu", 2, "Giusti", "GIU", ["VOL"], 76, "Marcacao"),
+          p("ar90-rug", 19, "Ruggeri", "RUG", ["ZAG"], 78, "Capitao"),
+          p("ar90-sim", 4, "Simon", "SIM", ["ZAG"], 74, "Firme"),
+          p("ar90-ser", 13, "Serrizuela", "SER", ["LD"], 74, "Ala"),
+          p("ar90-ola", 3, "Olarticoechea", "OLA", ["LE"], 74, "Apoio"),
+          p("ar90-goy", 12, "Goycochea", "GOY", ["GOL"], 80, "Heroi dos penaltis")
+        ]
+      },
+      {
+        key: "cs-1990", country: "Tchecoslovaquia", code: "CS", year: 1990, style: "Solidez do Leste",
+        players: [
+          p("cs90-sku", 18, "Skuhravy", "SKU", ["CA"], 80, "Cabeceio"),
+          p("cs90-kub", 8, "Kubik", "KUB", ["PD"], 77, "Drible"),
+          p("cs90-mor", 21, "Moravcik", "MOR", ["MEI"], 78, "Criacao"),
+          p("cs90-bil", 10, "Bilek", "BIL", ["MC"], 75, "Passe"),
+          p("cs90-has", 6, "I. Hasek", "HAS", ["VOL"], 75, "Motor"),
+          p("cs90-cho", 7, "Chovanec", "CHO", ["MC"], 76, "Marcacao"),
+          p("cs90-kad", 4, "M. Kadlec", "KAD", ["ZAG"], 76, "Firme"),
+          p("cs90-koc", 5, "Kocian", "KOC", ["ZAG"], 74, "Solido"),
+          p("cs90-str", 2, "Straka", "STR", ["LD"], 74, "Ala"),
+          p("cs90-nem", 3, "Nemecek", "NEM", ["LE"], 74, "Apoio"),
+          p("cs90-ste", 1, "Stejskal", "STE", ["GOL"], 76, "Seguro")
+        ]
+      },
+      {
+        key: "ro-1990", country: "Romenia", code: "RO", year: 1990, style: "Escola de Hagi",
+        players: [
+          p("ro90-hag", 10, "Hagi", "HAG", ["MEI"], 84, "Genio"),
+          p("ro90-lac", 9, "Lacatus", "LAC", ["PD"], 77, "Velocidade"),
+          p("ro90-bal", 11, "Balint", "BAL", ["CA"], 75, "Area"),
+          p("ro90-sab", 8, "Sabau", "SAB", ["MEI"], 74, "Criacao"),
+          p("ro90-pop", 6, "G. Popescu", "POP", ["MC"], 76, "Elegante"),
+          p("ro90-lup", 7, "Lupescu", "LUP", ["VOL"], 75, "Motor"),
+          p("ro90-and", 5, "Andone", "AND", ["ZAG"], 76, "Firme"),
+          p("ro90-red", 4, "Rednic", "RED", ["ZAG"], 74, "Solido"),
+          p("ro90-kle", 2, "Klein", "KLE", ["LD"], 74, "Ala"),
+          p("ro90-ung", 3, "Ungureanu", "UNG", ["LE"], 74, "Apoio"),
+          p("ro90-lun", 1, "Lung", "LUN", ["GOL"], 76, "Reflexo")
+        ]
+      },
+      {
+        key: "co-1990", country: "Colombia", code: "CO", year: 1990, style: "Higuita e Valderrama",
+        players: [
+          p("co90-val", 10, "Valderrama", "VAL", ["MEI"], 82, "Pibe"),
+          p("co90-rin", 6, "Rincon", "RIN", ["CA"], 78, "Decisivo"),
+          p("co90-igu", 9, "Iguaran", "IGU", ["CA"], 74, "Faro"),
+          p("co90-red", 8, "Redin", "RED", ["MEI"], 75, "Criacao"),
+          p("co90-est", 11, "Estrada", "EST", ["PD"], 74, "Correria"),
+          p("co90-gom", 5, "G. Gomez", "GOM", ["VOL"], 74, "Marcacao"),
+          p("co90-per", 2, "L. Perea", "PER", ["ZAG"], 74, "Firme"),
+          p("co90-esc", 4, "A. Escobar", "ESC", ["ZAG"], 74, "Solido"),
+          p("co90-her", 3, "Herrera", "HER", ["LD"], 74, "Ala"),
+          p("co90-ggo", 7, "Gildardo Gomez", "GGO", ["LE"], 74, "Apoio"),
+          p("co90-hig", 1, "Higuita", "HIG", ["GOL"], 80, "Louco")
+        ]
+      },
+      {
+        key: "ie-1990", country: "Irlanda", code: "IE", year: 1990, style: "Estreia epica",
+        players: [
+          p("ie90-ald", 8, "Aldridge", "ALD", ["CA"], 76, "Faro"),
+          p("ie90-cas", 20, "Cascarino", "CAS", ["CA"], 74, "Torre"),
+          p("ie90-tow", 6, "Townsend", "TOW", ["MC"], 76, "Motor"),
+          p("ie90-hou", 7, "Houghton", "HOU", ["PD"], 75, "Correria"),
+          p("ie90-whe", 11, "Whelan", "WHE", ["MC"], 74, "Passe"),
+          p("ie90-she", 10, "Sheedy", "SHE", ["PE"], 75, "Canhota"),
+          p("ie90-mcg", 5, "McGrath", "MCG", ["ZAG"], 79, "Muralha"),
+          p("ie90-mor", 4, "Moran", "MOR", ["ZAG"], 74, "Firme"),
+          p("ie90-cmo", 2, "C. Morris", "CMO", ["LD"], 74, "Ala"),
+          p("ie90-sta", 3, "Staunton", "STA", ["LE"], 74, "Apoio"),
+          p("ie90-bon", 1, "Bonner", "BON", ["GOL"], 76, "Heroi")
+        ]
+      },
+      {
+        key: "eg-1990", country: "Egito", code: "EG", year: 1990, style: "Faraos combativos",
+        players: [
+          p("eg90-hha", 20, "Hossam Hassan", "HHA", ["CA"], 76, "Artilheiro"),
+          p("eg90-elk", 21, "El-Kass", "ELK", ["CA"], 74, "Faro"),
+          p("eg90-iha", 10, "Ibrahim Hassan", "IHA", ["MEI"], 74, "Criacao"),
+          p("eg90-tol", 11, "Tolba", "TOL", ["PE"], 73, "Correria"),
+          p("eg90-abg", 6, "Abdelghani", "ABG", ["MC"], 74, "Motor"),
+          p("eg90-rmz", 8, "Ramzy", "RMZ", ["VOL"], 74, "Marcacao"),
+          p("eg90-hra", 5, "Hani Ramzy", "HRA", ["ZAG"], 74, "Firme"),
+          p("eg90-abh", 4, "Abdelhamid", "ABH", ["ZAG"], 73, "Solido"),
+          p("eg90-yak", 2, "Yakan", "YAK", ["LD"], 73, "Ala"),
+          p("eg90-abd", 3, "Abdou", "ABD", ["LE"], 73, "Apoio"),
+          p("eg90-sho", 1, "Shobeir", "SHO", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "cm-1990", country: "Camaroes", code: "CM", year: 1990, style: "Leoes de Milla",
+        players: [
+          p("cm90-mil", 9, "Roger Milla", "MIL", ["CA"], 82, "Lenda"),
+          p("cm90-oma", 10, "Omam-Biyik", "OMA", ["CA"], 78, "Faro"),
+          p("cm90-mak", 20, "Makanaky", "MAK", ["MEI"], 74, "Drible"),
+          p("cm90-mfe", 8, "Mfede", "MFE", ["MEI"], 74, "Criacao"),
+          p("cm90-kun", 5, "Kunde", "KUN", ["MC"], 74, "Motor"),
+          p("cm90-kbi", 6, "Kana-Biyik", "KBI", ["VOL"], 74, "Marcacao"),
+          p("cm90-tat", 4, "Tataw", "TAT", ["ZAG"], 76, "Capitao"),
+          p("cm90-mas", 15, "Massing", "MAS", ["ZAG"], 74, "Firme"),
+          p("cm90-eku", 2, "E. Kunde", "EKU", ["LD"], 74, "Ala"),
+          p("cm90-ona", 3, "Onana", "ONA", ["LE"], 73, "Apoio"),
+          p("cm90-nko", 1, "N'Kono", "NKO", ["GOL"], 78, "Muralha")
+        ]
+      },
+      {
+        key: "br-1986", country: "Brasil", code: "BR", year: 1986, style: "Arte de Zico e Socrates",
+        players: [
+          p("br86-zic", 10, "Zico", "ZIC", ["MEI"], 86, "Galinho"),
+          p("br86-soc", 8, "Socrates", "SOC", ["MEI"], 85, "Doutor"),
+          p("br86-car", 9, "Careca", "CAR", ["CA"], 82, "Craque"),
+          p("br86-jun", 6, "Junior", "JUN", ["LE"], 80, "Elegante"),
+          p("br86-ale", 15, "Alemao", "ALE", ["MC"], 76, "Motor"),
+          p("br86-elz", 5, "Elzo", "ELZ", ["VOL"], 74, "Marcacao"),
+          p("br86-mul", 11, "Muller", "MUL", ["PD"], 75, "Veloz"),
+          p("br86-jos", 2, "Josimar", "JOS", ["LD"], 77, "Golacos"),
+          p("br86-jce", 3, "Julio Cesar", "JCE", ["ZAG"], 76, "Firme"),
+          p("br86-edi", 4, "Edinho", "EDI", ["ZAG"], 76, "Solido"),
+          p("br86-car2", 1, "Carlos", "CAR2", ["GOL"], 76, "Seguro")
+        ]
+      },
+      {
+        key: "de-1986", country: "Alemanha", code: "DE", year: 1986, style: "Vice de Beckenbauer",
+        players: [
+          p("de86-rum", 11, "Rummenigge", "RUM", ["CA"], 84, "Capitao"),
+          p("de86-vol", 9, "Voller", "VOL", ["CA"], 80, "Faro"),
+          p("de86-mat", 8, "Matthaus", "MAT", ["MEI"], 83, "Motor"),
+          p("de86-mag", 6, "Magath", "MAG", ["MC"], 76, "Passe"),
+          p("de86-bri", 3, "Briegel", "BRI", ["VOL"], 76, "Forca"),
+          p("de86-ede", 7, "Eder", "EDE", ["PD"], 74, "Chute"),
+          p("de86-for", 4, "K. Forster", "FOR", ["ZAG"], 78, "Firme"),
+          p("de86-jak", 5, "Jakobs", "JAK", ["ZAG"], 74, "Solido"),
+          p("de86-ber", 2, "Berthold", "BER", ["LD"], 74, "Ala"),
+          p("de86-bre", 3, "Brehme", "BRE", ["LE"], 78, "Canhota"),
+          p("de86-sch", 1, "Schumacher", "SCH", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "it-1986", country: "Italia", code: "IT", year: 1986, style: "Campea defensora",
+        players: [
+          p("it86-alt", 20, "Altobelli", "ALT", ["CA"], 80, "Faro"),
+          p("it86-con", 16, "B. Conti", "CON", ["PD"], 78, "Drible"),
+          p("it86-gal", 21, "Galderisi", "GAL", ["CA"], 74, "Area"),
+          p("it86-anc", 10, "Ancelotti", "ANC", ["MC"], 76, "Passe"),
+          p("it86-bag", 14, "Bagni", "BAG", ["MC"], 74, "Motor"),
+          p("it86-den", 8, "De Napoli", "DEN", ["VOL"], 74, "Marcacao"),
+          p("it86-sci", 6, "Scirea", "SCI", ["ZAG"], 82, "Libero"),
+          p("it86-vie", 5, "Vierchowod", "VIE", ["ZAG"], 78, "Firme"),
+          p("it86-brg", 2, "Bergomi", "BRG", ["LD"], 76, "Ala"),
+          p("it86-cab", 3, "Cabrini", "CAB", ["LE"], 78, "Apoio"),
+          p("it86-gli", 1, "Galli", "GLI", ["GOL"], 78, "Seguro")
+        ]
+      },
+      {
+        key: "fr-1986", country: "Franca", code: "FR", year: 1986, style: "Carre magico",
+        players: [
+          p("fr86-pla", 10, "Platini", "PLA", ["MEI"], 88, "Rei",),
+          p("fr86-gir", 12, "Giresse", "GIR", ["MC"], 82, "Cerebro"),
+          p("fr86-tig", 14, "Tigana", "TIG", ["MC"], 82, "Motor"),
+          p("fr86-fer", 6, "L. Fernandez", "FER", ["VOL"], 78, "Marcacao"),
+          p("fr86-roc", 20, "Rocheteau", "ROC", ["CA"], 78, "Faro"),
+          p("fr86-sto", 9, "Stopyra", "STO", ["CA"], 77, "Area"),
+          p("fr86-bat", 4, "Battiston", "BAT", ["ZAG"], 77, "Firme"),
+          p("fr86-bos", 5, "Bossis", "BOS", ["ZAG"], 76, "Solido"),
+          p("fr86-amo", 2, "Amoros", "AMO", ["LD"], 78, "Ala"),
+          p("fr86-aya", 3, "Ayache", "AYA", ["LE"], 74, "Apoio"),
+          p("fr86-bts", 1, "Bats", "BTS", ["GOL"], 78, "Reflexo")
+        ]
+      },
+      {
+        key: "dk-1986", country: "Dinamarca", code: "DK", year: 1986, style: "Danish dynamite",
+        players: [
+          p("dk86-elk", 9, "Elkjaer", "ELK", ["CA"], 82, "Craque"),
+          p("dk86-lau", 11, "M. Laudrup", "LAU", ["MEI"], 80, "Joia"),
+          p("dk86-arn", 10, "Arnesen", "ARN", ["MEI"], 78, "Criacao"),
+          p("dk86-ler", 6, "Lerby", "LER", ["MC"], 78, "Capitao"),
+          p("dk86-mol", 8, "Molby", "MOL", ["VOL"], 77, "Passe"),
+          p("dk86-ber", 7, "Berggreen", "BER", ["PD"], 74, "Correria"),
+          p("dk86-ols", 4, "M. Olsen", "OLS", ["ZAG"], 76, "Firme"),
+          p("dk86-bus", 5, "Busk", "BUS", ["ZAG"], 74, "Solido"),
+          p("dk86-siv", 2, "Sivebaek", "SIV", ["LD"], 74, "Ala"),
+          p("dk86-jan", 3, "J. Andersen", "JAN", ["LE"], 74, "Apoio"),
+          p("dk86-ras", 1, "Rasmussen", "RAS", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "es-1986", country: "Espanha", code: "ES", year: 1986, style: "Buitre",
+        players: [
+          p("es86-but", 7, "Butragueno", "BUT", ["CA"], 84, "Abutre"),
+          p("es86-mic", 8, "Michel", "MIC", ["MEI"], 80, "Criacao"),
+          p("es86-sal", 9, "Salinas", "SAL", ["CA"], 76, "Area"),
+          p("es86-vic", 11, "Victor", "VIC", ["PE"], 74, "Drible"),
+          p("es86-gal", 6, "Gallego", "GAL", ["VOL"], 76, "Motor"),
+          p("es86-sen", 10, "Senor", "SEN", ["MC"], 74, "Passe"),
+          p("es86-mac", 4, "Maceda", "MAC", ["ZAG"], 76, "Firme"),
+          p("es86-goi", 5, "Goikoetxea", "GOI", ["ZAG"], 76, "Duro"),
+          p("es86-cam", 2, "Camacho", "CAM", ["LD"], 76, "Ala"),
+          p("es86-jal", 3, "Julio Alberto", "JAL", ["LE"], 74, "Apoio"),
+          p("es86-zub", 1, "Zubizarreta", "ZUB", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "uy-1986", country: "Uruguai", code: "UY", year: 1986, style: "Principe Francescoli",
+        players: [
+          p("uy86-fra", 10, "Francescoli", "FRA", ["MEI"], 84, "Principe"),
+          p("uy86-dsi", 9, "Da Silva", "DSI", ["CA"], 76, "Faro"),
+          p("uy86-cab", 11, "Cabrera", "CAB", ["CA"], 74, "Area"),
+          p("uy86-bos", 8, "Bossio", "BOS", ["MEI"], 74, "Criacao"),
+          p("uy86-bar", 5, "Barrios", "BAR", ["MC"], 74, "Motor"),
+          p("uy86-bat", 6, "Batista", "BAT", ["VOL"], 76, "Marcacao"),
+          p("uy86-gut", 2, "Gutierrez", "GUT", ["ZAG"], 74, "Firme"),
+          p("uy86-ace", 4, "Acevedo", "ACE", ["ZAG"], 74, "Solido"),
+          p("uy86-dio", 3, "Diogo", "DIO", ["LD"], 74, "Ala"),
+          p("uy86-per", 13, "Pereyra", "PER", ["LE"], 74, "Apoio"),
+          p("uy86-alv", 1, "Alvez", "ALV", ["GOL"], 76, "Seguro")
+        ]
+      },
+      {
+        key: "be-1986", country: "Belgica", code: "BE", year: 1986, style: "Quarto lugar",
+        players: [
+          p("be86-sci", 10, "Scifo", "SCI", ["MEI"], 82, "Talento"),
+          p("be86-ceu", 7, "Ceulemans", "CEU", ["CA"], 80, "Capitao"),
+          p("be86-cla", 9, "Claesen", "CLA", ["PE"], 76, "Faro"),
+          p("be86-ver", 6, "Vercauteren", "VER", ["MC"], 76, "Passe"),
+          p("be86-vev", 8, "Vervoort", "VEV", ["VOL"], 74, "Motor"),
+          p("be86-vey", 11, "Veyt", "VEY", ["CA"], 74, "Correria"),
+          p("be86-dem", 4, "Demol", "DEM", ["ZAG"], 74, "Firme"),
+          p("be86-gru", 5, "Grun", "GRU", ["ZAG"], 74, "Solido"),
+          p("be86-ger", 2, "Gerets", "GER", ["LD"], 78, "Ala"),
+          p("be86-ren", 3, "Renquin", "REN", ["LE"], 74, "Apoio"),
+          p("be86-pfa", 1, "Pfaff", "PFA", ["GOL"], 80, "Paredao")
+        ]
+      },
+      {
+        key: "bg-1986", country: "Bulgaria", code: "BG", year: 1986, style: "Combate do Leste",
+        players: [
+          p("bg86-sir", 9, "Sirakov", "SIR", ["CA"], 76, "Faro"),
+          p("bg86-get", 11, "Getov", "GET", ["CA"], 74, "Area"),
+          p("bg86-mla", 7, "Mladenov", "MLA", ["PE"], 74, "Correria"),
+          p("bg86-isk", 10, "Iskrenov", "ISK", ["MEI"], 74, "Criacao"),
+          p("bg86-yor", 8, "A. Yordanov", "YOR", ["MC"], 74, "Motor"),
+          p("bg86-zdr", 6, "Zdravkov", "ZDR", ["VOL"], 74, "Marcacao"),
+          p("bg86-dim", 4, "G. Dimitrov", "DIM", ["ZAG"], 74, "Firme"),
+          p("bg86-ara", 5, "Arabov", "ARA", ["ZAG"], 73, "Solido"),
+          p("bg86-pet", 2, "Z. Petrov", "PET", ["LD"], 73, "Ala"),
+          p("bg86-sad", 3, "Sadkov", "SAD", ["LE"], 73, "Apoio"),
+          p("bg86-mih", 1, "B. Mihailov", "MIH", ["GOL"], 76, "Seguro")
+        ]
+      },
+      {
+        key: "ma-1986", country: "Marrocos", code: "MA", year: 1986, style: "Pioneiros africanos",
+        players: [
+          p("ma86-tim", 10, "Timoumi", "TIM", ["MEI"], 78, "Craque"),
+          p("ma86-bou", 8, "Bouderbala", "BOU", ["MEI"], 76, "Criacao"),
+          p("ma86-kri", 9, "Krimau", "KRI", ["CA"], 74, "Faro"),
+          p("ma86-mer", 11, "Merry", "MER", ["CA"], 74, "Area"),
+          p("ma86-dol", 6, "Dolmy", "DOL", ["MC"], 74, "Motor"),
+          p("ma86-bya", 5, "Bouyahyaoui", "BYA", ["VOL"], 74, "Marcacao"),
+          p("ma86-bib", 4, "El Biyaz", "BIB", ["ZAG"], 74, "Firme"),
+          p("ma86-lam", 3, "Lamriss", "LAM", ["ZAG"], 73, "Solido"),
+          p("ma86-kha", 2, "Khairi", "KHA", ["LD"], 73, "Ala"),
+          p("ma86-sou", 7, "Souleymani", "SOU", ["LE"], 73, "Apoio"),
+          p("ma86-zak", 1, "Zaki", "ZAK", ["GOL"], 78, "Muralha")
+        ]
+      },
+      {
+        key: "mx-1986", country: "Mexico", code: "MX", year: 1986, style: "Anfitria de Hugo",
+        players: [
+          p("mx86-hug", 11, "Hugo Sanchez", "HUG", ["CA"], 85, "Craque"),
+          p("mx86-neg", 10, "Negrete", "NEG", ["MEI"], 78, "Voleio"),
+          p("mx86-boy", 8, "Boy", "BOY", ["MEI"], 76, "Criacao"),
+          p("mx86-agu", 7, "Aguirre", "AGU", ["PD"], 74, "Correria"),
+          p("mx86-esp", 6, "Espana", "ESP", ["VOL"], 74, "Motor"),
+          p("mx86-ser", 15, "Servin", "SER", ["VOL"], 74, "Marcacao"),
+          p("mx86-qui", 4, "Quirarte", "QUI", ["ZAG"], 76, "Firme"),
+          p("mx86-ama", 5, "Amador", "AMA", ["ZAG"], 74, "Solido"),
+          p("mx86-lar", 2, "F. Larios", "LAR", ["LD"], 74, "Ala"),
+          p("mx86-cru", 3, "F. Cruz", "CRU", ["LE"], 74, "Apoio"),
+          p("mx86-mun", 1, "P. Munoz", "MUN", ["GOL"], 76, "Reflexo")
+        ]
+      },
+      {
+        key: "pl-1986", country: "Polonia", code: "PL", year: 1986, style: "Boniek",
+        players: [
+          p("pl86-bon", 20, "Boniek", "BON", ["MEI"], 82, "Craque"),
+          p("pl86-smo", 9, "Smolarek", "SMO", ["CA"], 76, "Faro"),
+          p("pl86-dzi", 11, "Dziekanowski", "DZI", ["CA"], 74, "Area"),
+          p("pl86-urb", 10, "Urban", "URB", ["MEI"], 74, "Criacao"),
+          p("pl86-tar", 8, "Tarasiewicz", "TAR", ["MC"], 74, "Passe"),
+          p("pl86-mat", 6, "Matysik", "MAT", ["VOL"], 74, "Motor"),
+          p("pl86-zmu", 4, "Zmuda", "ZMU", ["ZAG"], 76, "Capitao"),
+          p("pl86-woj", 5, "Wojcicki", "WOJ", ["ZAG"], 74, "Firme"),
+          p("pl86-paw", 2, "Pawlak", "PAW", ["LD"], 73, "Ala"),
+          p("pl86-ost", 3, "Ostrowski", "OST", ["LE"], 73, "Apoio"),
+          p("pl86-mly", 1, "Mlynarczyk", "MLY", ["GOL"], 78, "Seguro")
+        ]
+      },
+      {
+        key: "py-1986", country: "Paraguai", code: "PY", year: 1986, style: "Romerito",
+        players: [
+          p("py86-rom", 10, "Romerito", "ROM", ["MEI"], 80, "Craque"),
+          p("py86-cab", 9, "R. Cabanas", "CAB", ["CA"], 78, "Faro"),
+          p("py86-men", 11, "Mendoza", "MEN", ["CA"], 74, "Area"),
+          p("py86-fer", 8, "V. Ferreira", "FER", ["MC"], 74, "Passe"),
+          p("py86-zab", 6, "Zabala", "ZAB", ["MEI"], 74, "Motor"),
+          p("py86-del", 5, "Delgado", "DEL", ["VOL"], 74, "Marcacao"),
+          p("py86-sch", 4, "Schettina", "SCH", ["ZAG"], 74, "Firme"),
+          p("py86-gua", 2, "Guasch", "GUA", ["ZAG"], 74, "Solido"),
+          p("py86-cfe", 13, "C. Fernandez", "CFE", ["LD"], 73, "Ala"),
+          p("py86-nun", 3, "Nunez", "NUN", ["LE"], 73, "Apoio"),
+          p("py86-rfe", 1, "R. Fernandez", "RFE", ["GOL"], 76, "Seguro")
+        ]
+      },
+      {
+        key: "br-1982", country: "Brasil", code: "BR", year: 1982, style: "Selecao mais bonita",
+        players: [
+          p("br82-zic", 10, "Zico", "ZIC", ["MEI"], 88, "Craque"),
+          p("br82-soc", 8, "Socrates", "SOC", ["MEI"], 86, "Doutor"),
+          p("br82-fal", 5, "Falcao", "FAL", ["MC"], 85, "Rei de Roma"),
+          p("br82-ede", 9, "Eder", "EDE", ["PE"], 82, "Canhota"),
+          p("br82-jun", 6, "Junior", "JUN", ["LE"], 80, "Elegante"),
+          p("br82-cer", 15, "Cerezo", "CER", ["VOL"], 80, "Motor"),
+          p("br82-ser", 11, "Serginho", "SER", ["CA"], 74, "Pivo"),
+          p("br82-osc", 3, "Oscar", "OSC", ["ZAG"], 78, "Firme"),
+          p("br82-lui", 4, "Luizinho", "LUI", ["ZAG"], 76, "Solido"),
+          p("br82-lea", 2, "Leandro", "LEA", ["LD"], 79, "Ala"),
+          p("br82-wal", 1, "Waldir Peres", "WAL", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "it-1982", country: "Italia", code: "IT", year: 1982, style: "Campea de Bearzot",
+        players: [
+          p("it82-ros", 20, "Paolo Rossi", "ROS", ["CA"], 86, "Artilheiro"),
+          p("it82-tar", 14, "Tardelli", "TAR", ["MC"], 82, "Chegada"),
+          p("it82-con", 16, "B. Conti", "CON", ["PD"], 82, "Drible"),
+          p("it82-ant", 10, "Antognoni", "ANT", ["MEI"], 80, "Criacao"),
+          p("it82-gra", 19, "Graziani", "GRA", ["CA"], 76, "Pivo"),
+          p("it82-ori", 13, "Oriali", "ORI", ["VOL"], 76, "Marcacao"),
+          p("it82-sci", 6, "Scirea", "SCI", ["ZAG"], 84, "Libero"),
+          p("it82-gen", 5, "Gentile", "GEN", ["ZAG"], 80, "Marcador"),
+          p("it82-brg", 2, "Bergomi", "BRG", ["LD"], 76, "Ala"),
+          p("it82-cab", 3, "Cabrini", "CAB", ["LE"], 80, "Apoio"),
+          p("it82-zof", 1, "Zoff", "ZOF", ["GOL"], 86, "Capitao")
+        ]
+      },
+      {
+        key: "de-1982", country: "Alemanha", code: "DE", year: 1982, style: "Vice polemica",
+        players: [
+          p("de82-rum", 11, "Rummenigge", "RUM", ["CA"], 86, "Craque"),
+          p("de82-fis", 9, "K. Fischer", "FIS", ["CA"], 76, "Bicicleta"),
+          p("de82-bre", 8, "Breitner", "BRE", ["MC"], 82, "Cerebro"),
+          p("de82-mag", 6, "Magath", "MAG", ["MEI"], 76, "Passe"),
+          p("de82-dre", 4, "Dremmler", "DRE", ["VOL"], 74, "Marcacao"),
+          p("de82-lit", 7, "Littbarski", "LIT", ["PD"], 78, "Drible"),
+          p("de82-for", 5, "K. Forster", "FOR", ["ZAG"], 78, "Firme"),
+          p("de82-sti", 15, "Stielike", "STI", ["ZAG"], 78, "Solido"),
+          p("de82-kal", 2, "Kaltz", "KAL", ["LD"], 78, "Ala"),
+          p("de82-bri", 3, "Briegel", "BRI", ["LE"], 76, "Forca"),
+          p("de82-sch", 1, "Schumacher", "SCH", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "fr-1982", country: "Franca", code: "FR", year: 1982, style: "Sevilha inesquecivel",
+        players: [
+          p("fr82-pla", 10, "Platini", "PLA", ["MEI"], 86, "Rei"),
+          p("fr82-gir", 12, "Giresse", "GIR", ["MC"], 82, "Cerebro"),
+          p("fr82-tig", 14, "Tigana", "TIG", ["MC"], 80, "Motor"),
+          p("fr82-gen", 8, "Genghini", "GEN", ["MEI"], 76, "Passe"),
+          p("fr82-six", 11, "Six", "SIX", ["PE"], 76, "Correria"),
+          p("fr82-roc", 20, "Rocheteau", "ROC", ["CA"], 78, "Faro"),
+          p("fr82-tre", 5, "Tresor", "TRE", ["ZAG"], 80, "Elegante"),
+          p("fr82-jan", 4, "Janvion", "JAN", ["ZAG"], 76, "Firme"),
+          p("fr82-amo", 2, "Amoros", "AMO", ["LD"], 76, "Ala"),
+          p("fr82-bos", 3, "Bossis", "BOS", ["LE"], 74, "Apoio"),
+          p("fr82-ett", 1, "Ettori", "ETT", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "en-1982", country: "Inglaterra", code: "EN", year: 1982, style: "Invicta sem passar",
+        players: [
+          p("en82-rob", 16, "B. Robson", "ROB", ["MC"], 82, "Motor"),
+          p("en82-fra", 20, "T. Francis", "FRA", ["CA"], 78, "Faro"),
+          p("en82-mar", 10, "Mariner", "MAR", ["CA"], 76, "Pivo"),
+          p("en82-wil", 7, "Wilkins", "WIL", ["MC"], 78, "Passe"),
+          p("en82-rix", 8, "Rix", "RIX", ["MEI"], 74, "Criacao"),
+          p("en82-cop", 11, "Coppell", "COP", ["PD"], 76, "Correria"),
+          p("en82-but", 6, "Butcher", "BUT", ["ZAG"], 76, "Duro"),
+          p("en82-tho", 5, "P. Thompson", "THO", ["ZAG"], 76, "Firme"),
+          p("en82-mil", 2, "M. Mills", "MIL", ["LD"], 74, "Capitao"),
+          p("en82-san", 3, "Sansom", "SAN", ["LE"], 76, "Ala"),
+          p("en82-shi", 1, "Shilton", "SHI", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "ar-1982", country: "Argentina", code: "AR", year: 1982, style: "Campea defende titulo",
+        players: [
+          p("ar82-mar", 10, "Maradona", "MAR", ["MEI"], 84, "Joia"),
+          p("ar82-kem", 11, "Kempes", "KEM", ["CA"], 82, "Matador"),
+          p("ar82-ard", 1, "Ardiles", "ARD", ["MC"], 80, "Cerebro"),
+          p("ar82-ber", 7, "Bertoni", "BER", ["PD"], 78, "Drible"),
+          p("ar82-gal", 8, "Gallego", "GAL", ["VOL"], 76, "Marcacao"),
+          p("ar82-dia", 9, "R. Diaz", "DIA", ["CA"], 74, "Faro"),
+          p("ar82-pas", 6, "Passarella", "PAS", ["ZAG"], 82, "Capitao"),
+          p("ar82-gav", 2, "L. Galvan", "GAV", ["ZAG"], 76, "Firme"),
+          p("ar82-olg", 4, "Olguin", "OLG", ["LD"], 74, "Ala"),
+          p("ar82-tar", 3, "Tarantini", "TAR", ["LE"], 74, "Apoio"),
+          p("ar82-fil", 5, "Fillol", "FIL", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "sco-1982", country: "Escocia", code: "SCO", year: 1982, style: "Tartan Army",
+        players: [
+          p("sco82-dal", 8, "Dalglish", "DAL", ["CA"], 84, "Craque"),
+          p("sco82-sou", 11, "Souness", "SOU", ["MC"], 82, "Lider"),
+          p("sco82-arc", 9, "Archibald", "ARC", ["CA"], 76, "Faro"),
+          p("sco82-str", 7, "Strachan", "STR", ["PD"], 76, "Drible"),
+          p("sco82-war", 10, "Wark", "WAR", ["MC"], 76, "Chegada"),
+          p("sco82-rob", 16, "J. Robertson", "ROB", ["PE"], 76, "Canhota"),
+          p("sco82-han", 4, "Hansen", "HAN", ["ZAG"], 78, "Elegante"),
+          p("sco82-mcl", 5, "McLeish", "MCL", ["ZAG"], 76, "Firme"),
+          p("sco82-nar", 2, "Narey", "NAR", ["LD"], 74, "Ala"),
+          p("sco82-gra", 3, "F. Gray", "GRA", ["LE"], 74, "Apoio"),
+          p("sco82-rou", 1, "Rough", "ROU", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "be-1982", country: "Belgica", code: "BE", year: 1982, style: "Diabos organizados",
+        players: [
+          p("be82-ceu", 8, "Ceulemans", "CEU", ["CA"], 80, "Craque"),
+          p("be82-van", 9, "Vandenbergh", "VAN", ["CA"], 74, "Area"),
+          p("be82-ver", 10, "Vercauteren", "VER", ["MEI"], 76, "Criacao"),
+          p("be82-vde", 6, "F. Van der Elst", "VDE", ["MC"], 76, "Motor"),
+          p("be82-vdy", 7, "Vandereycken", "VDY", ["MEI"], 74, "Passe"),
+          p("be82-coe", 4, "Coeck", "COE", ["VOL"], 76, "Marcacao"),
+          p("be82-mil", 5, "Millecamps", "MIL", ["ZAG"], 74, "Firme"),
+          p("be82-mee", 3, "Meeuws", "MEE", ["ZAG"], 74, "Solido"),
+          p("be82-ger", 2, "Gerets", "GER", ["LD"], 76, "Ala"),
+          p("be82-bae", 15, "Baecke", "BAE", ["LE"], 73, "Apoio"),
+          p("be82-pfa", 1, "Pfaff", "PFA", ["GOL"], 78, "Paredao")
+        ]
+      },
+      {
+        key: "at-1982", country: "Austria", code: "AT", year: 1982, style: "Krankl e cia",
+        players: [
+          p("at82-kra", 9, "Krankl", "KRA", ["CA"], 80, "Craque"),
+          p("at82-pro", 8, "Prohaska", "PRO", ["MC"], 80, "Cerebro"),
+          p("at82-sch", 10, "Schachner", "SCH", ["CA"], 76, "Faro"),
+          p("at82-hin", 7, "Hintermaier", "HIN", ["MEI"], 74, "Criacao"),
+          p("at82-jar", 11, "Jara", "JAR", ["MEI"], 74, "Passe"),
+          p("at82-bau", 6, "Baumeister", "BAU", ["VOL"], 74, "Motor"),
+          p("at82-pez", 4, "Pezzey", "PEZ", ["ZAG"], 78, "Firme"),
+          p("at82-obe", 5, "Obermayer", "OBE", ["ZAG"], 74, "Solido"),
+          p("at82-kru", 2, "Krauss", "KRU", ["LD"], 74, "Ala"),
+          p("at82-web", 3, "Weber", "WEB", ["LE"], 74, "Apoio"),
+          p("at82-kon", 1, "Koncilia", "KON", ["GOL"], 76, "Seguro")
+        ]
+      },
+      {
+        key: "pl-1982", country: "Polonia", code: "PL", year: 1982, style: "Bronze de Boniek",
+        players: [
+          p("pl82-bon", 20, "Boniek", "BON", ["MEI"], 84, "Craque"),
+          p("pl82-lat", 9, "Lato", "LAT", ["PD"], 80, "Faro"),
+          p("pl82-smo", 11, "Smolarek", "SMO", ["CA"], 76, "Area"),
+          p("pl82-kup", 10, "Kupcewicz", "KUP", ["MEI"], 76, "Passe"),
+          p("pl82-bun", 8, "Buncol", "BUN", ["MC"], 74, "Motor"),
+          p("pl82-mat", 6, "Matysik", "MAT", ["VOL"], 74, "Marcacao"),
+          p("pl82-zmu", 4, "Zmuda", "ZMU", ["ZAG"], 78, "Capitao"),
+          p("pl82-jan", 5, "Janas", "JAN", ["ZAG"], 74, "Firme"),
+          p("pl82-dzi", 2, "Dziuba", "DZI", ["LD"], 74, "Ala"),
+          p("pl82-maj", 3, "Majewski", "MAJ", ["LE"], 74, "Apoio"),
+          p("pl82-mly", 1, "Mlynarczyk", "MLY", ["GOL"], 78, "Seguro")
+        ]
+      },
+      {
+        key: "dz-1982", country: "Argelia", code: "DZ", year: 1982, style: "Vitoria sobre a Alemanha",
+        players: [
+          p("dz82-mad", 10, "Madjer", "MAD", ["CA"], 78, "Craque"),
+          p("dz82-bel", 8, "Belloumi", "BEL", ["MEI"], 78, "Criacao"),
+          p("dz82-ass", 7, "Assad", "ASS", ["PE"], 76, "Drible"),
+          p("dz82-dah", 11, "Dahleb", "DAH", ["MEI"], 76, "Passe"),
+          p("dz82-fer", 6, "Fergani", "FER", ["VOL"], 74, "Motor"),
+          p("dz82-ben", 9, "Bensaoula", "BEN", ["CA"], 74, "Area"),
+          p("dz82-kou", 4, "Kourichi", "KOU", ["ZAG"], 74, "Firme"),
+          p("dz82-gue", 5, "Guendouz", "GUE", ["ZAG"], 74, "Solido"),
+          p("dz82-mer", 2, "Merzekane", "MER", ["LD"], 74, "Ala"),
+          p("dz82-man", 3, "Mansouri", "MAN", ["LE"], 73, "Apoio"),
+          p("dz82-cer", 1, "Cerbah", "CER", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "cm-1982", country: "Camaroes", code: "CM", year: 1982, style: "Estreia invicta",
+        players: [
+          p("cm82-mil", 9, "Roger Milla", "MIL", ["CA"], 80, "Craque"),
+          p("cm82-abe", 10, "Abega", "ABE", ["MEI"], 76, "Criacao"),
+          p("cm82-mbi", 11, "M'Bida", "MBI", ["CA"], 74, "Area"),
+          p("cm82-man", 8, "Manga Onguene", "MAN", ["MEI"], 74, "Passe"),
+          p("cm82-tok", 7, "Tokoto", "TOK", ["PD"], 74, "Correria"),
+          p("cm82-kah", 6, "Kaham", "KAH", ["VOL"], 74, "Marcacao"),
+          p("cm82-nde", 4, "N'Djeya", "NDE", ["ZAG"], 74, "Firme"),
+          p("cm82-ona", 5, "Onana", "ONA", ["ZAG"], 74, "Solido"),
+          p("cm82-aou", 2, "Aoudou", "AOU", ["LD"], 74, "Ala"),
+          p("cm82-bah", 3, "Bahoken", "BAH", ["LE"], 73, "Apoio"),
+          p("cm82-nko", 1, "N'Kono", "NKO", ["GOL"], 78, "Muralha")
+        ]
+      },
     // <<APPEND>>
   ];
 })();
