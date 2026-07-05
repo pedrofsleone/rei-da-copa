@@ -534,6 +534,20 @@
       isolation: isolate;
     }
 
+    /* Full-bleed watercolour wash so the whole background feels illustrated,
+       not a plain/empty half. Kept faint so panel text stays readable. */
+    .room-poster::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      background: url("assets/room-players.png") center top / cover no-repeat;
+      opacity: 0.18;
+      filter: saturate(1.15);
+      pointer-events: none;
+    }
+
+    /* Crisp players kept on the right as the focal accent, over the wash. */
     .room-poster::after {
       content: "";
       position: absolute;
@@ -541,6 +555,8 @@
       inset: 0 0 0 auto;
       width: 47%;
       background: url("assets/room-players.png") right top / cover no-repeat;
+      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 26%);
+      mask-image: linear-gradient(to right, transparent 0, #000 26%);
       pointer-events: none;
     }
 
