@@ -2863,6 +2863,470 @@
           p("cm82-nko", 1, "N'Kono", "NKO", ["GOL"], 78, "Muralha")
         ]
       },
+      {
+        key: "ar-1978", country: "Argentina", code: "AR", year: 1978, style: "Campea em casa",
+        players: [
+          p("ar78-kem", 10, "Kempes", "KEM", ["CA"], 86, "Matador"),
+          p("ar78-luq", 11, "Luque", "LUQ", ["CA"], 78, "Faro"),
+          p("ar78-ber", 7, "Bertoni", "BER", ["PD"], 78, "Drible"),
+          p("ar78-ard", 2, "Ardiles", "ARD", ["MC"], 80, "Cerebro"),
+          p("ar78-gal", 8, "Gallego", "GAL", ["VOL"], 76, "Marcacao"),
+          p("ar78-ort", 9, "Ortiz", "ORT", ["PE"], 74, "Correria"),
+          p("ar78-pas", 19, "Passarella", "PAS", ["ZAG"], 82, "Capitao"),
+          p("ar78-gav", 4, "L. Galvan", "GAV", ["ZAG"], 76, "Firme"),
+          p("ar78-olg", 5, "Olguin", "OLG", ["LD"], 74, "Ala"),
+          p("ar78-tar", 3, "Tarantini", "TAR", ["LE"], 74, "Apoio"),
+          p("ar78-fil", 1, "Fillol", "FIL", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "nl-1978", country: "Holanda", code: "NL", year: 1978, style: "Laranja sem Cruyff",
+        players: [
+          p("nl78-ren", 12, "Rensenbrink", "REN", ["PE"], 82, "Craque"),
+          p("nl78-nee", 13, "Neeskens", "NEE", ["MC"], 82, "Motor"),
+          p("nl78-rep", 16, "Rep", "REP", ["CA"], 78, "Faro"),
+          p("nl78-haa", 8, "Haan", "HAA", ["MC"], 78, "Chute"),
+          p("nl78-rvd", 17, "R. van der Kerkhof", "RVD", ["PD"], 78, "Drible"),
+          p("nl78-jan", 6, "W. Jansen", "JAN", ["VOL"], 76, "Marcacao"),
+          p("nl78-kro", 5, "Krol", "KRO", ["ZAG"], 82, "Capitao"),
+          p("nl78-bra", 20, "Brandts", "BRA", ["ZAG"], 74, "Firme"),
+          p("nl78-suu", 2, "Suurbier", "SUU", ["LD"], 74, "Ala"),
+          p("nl78-poo", 3, "Poortvliet", "POO", ["LE"], 74, "Apoio"),
+          p("nl78-jon", 1, "Jongbloed", "JON", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "br-1978", country: "Brasil", code: "BR", year: 1978, style: "Terceiro invicto",
+        players: [
+          p("br78-zic", 10, "Zico", "ZIC", ["MEI"], 82, "Galinho"),
+          p("br78-riv", 11, "Rivelino", "RIV", ["MEI"], 82, "Canhota"),
+          p("br78-rob", 18, "Roberto Dinamite", "ROB", ["CA"], 78, "Faro"),
+          p("br78-gil", 7, "Gil", "GIL", ["PD"], 74, "Drible"),
+          p("br78-cer", 8, "Cerezo", "CER", ["VOL"], 76, "Motor"),
+          p("br78-bat", 5, "Batista", "BAT", ["MC"], 74, "Marcacao"),
+          p("br78-osc", 3, "Oscar", "OSC", ["ZAG"], 76, "Firme"),
+          p("br78-ama", 4, "Amaral", "AMA", ["ZAG"], 74, "Solido"),
+          p("br78-nel", 2, "Nelinho", "NEL", ["LD"], 76, "Canhao"),
+          p("br78-edi", 6, "Edinho", "EDI", ["LE"], 74, "Apoio"),
+          p("br78-lea", 1, "Leao", "LEA", ["GOL"], 78, "Seguro")
+        ]
+      },
+      {
+        key: "it-1978", country: "Italia", code: "IT", year: 1978, style: "Futebol ofensivo",
+        players: [
+          p("it78-ros", 20, "Paolo Rossi", "ROS", ["CA"], 82, "Joia"),
+          p("it78-bet", 19, "Bettega", "BET", ["CA"], 80, "Cabeceio"),
+          p("it78-cau", 16, "Causio", "CAU", ["PD"], 78, "Drible"),
+          p("it78-ant", 10, "Antognoni", "ANT", ["MEI"], 78, "Criacao"),
+          p("it78-tar", 14, "Tardelli", "TAR", ["MC"], 78, "Chegada"),
+          p("it78-ben", 13, "Benetti", "BEN", ["VOL"], 74, "Marcacao"),
+          p("it78-sci", 6, "Scirea", "SCI", ["ZAG"], 82, "Libero"),
+          p("it78-gen", 5, "Gentile", "GEN", ["ZAG"], 78, "Marcador"),
+          p("it78-cuc", 2, "Cuccureddu", "CUC", ["LD"], 74, "Ala"),
+          p("it78-cab", 3, "Cabrini", "CAB", ["LE"], 76, "Apoio"),
+          p("it78-zof", 1, "Zoff", "ZOF", ["GOL"], 84, "Capitao")
+        ]
+      },
+      {
+        key: "es-1978", country: "Espanha", code: "ES", year: 1978, style: "Furia em transicao",
+        players: [
+          p("es78-san", 9, "Santillana", "SAN", ["CA"], 78, "Cabeceio"),
+          p("es78-jua", 11, "Juanito", "JUA", ["PD"], 76, "Drible"),
+          p("es78-ase", 10, "Asensi", "ASE", ["MEI"], 76, "Criacao"),
+          p("es78-car", 8, "Cardenosa", "CAR", ["MC"], 74, "Passe"),
+          p("es78-dbo", 6, "Del Bosque", "DBO", ["VOL"], 76, "Motor"),
+          p("es78-rex", 7, "Rexach", "REX", ["PE"], 74, "Canhota"),
+          p("es78-mig", 4, "Migueli", "MIG", ["ZAG"], 74, "Firme"),
+          p("es78-mar", 5, "Marcelino", "MAR", ["ZAG"], 74, "Solido"),
+          p("es78-dlc", 2, "De la Cruz", "DLC", ["LD"], 74, "Ala"),
+          p("es78-olm", 3, "Olmo", "OLM", ["LE"], 74, "Apoio"),
+          p("es78-arc", 1, "Arconada", "ARC", ["GOL"], 80, "Paredao")
+        ]
+      },
+      {
+        key: "pl-1978", country: "Polonia", code: "PL", year: 1978, style: "Lato e Deyna",
+        players: [
+          p("pl78-lat", 9, "Lato", "LAT", ["PD"], 82, "Craque"),
+          p("pl78-dey", 10, "Deyna", "DEY", ["MC"], 82, "Capitao"),
+          p("pl78-sza", 8, "Szarmach", "SZA", ["CA"], 78, "Faro"),
+          p("pl78-bon", 20, "Boniek", "BON", ["MEI"], 80, "Joia"),
+          p("pl78-kas", 7, "Kasperczak", "KAS", ["MEI"], 74, "Correria"),
+          p("pl78-naw", 6, "Nawalka", "NAW", ["VOL"], 74, "Marcacao"),
+          p("pl78-zmu", 4, "Zmuda", "ZMU", ["ZAG"], 78, "Firme"),
+          p("pl78-gor", 5, "Gorgon", "GOR", ["ZAG"], 76, "Torre"),
+          p("pl78-szy", 2, "Szymanowski", "SZY", ["LD"], 74, "Ala"),
+          p("pl78-mac", 3, "Maculewicz", "MAC", ["LE"], 74, "Apoio"),
+          p("pl78-tom", 1, "Tomaszewski", "TOM", ["GOL"], 78, "Paredao")
+        ]
+      },
+      {
+        key: "sco-1978", country: "Escocia", code: "SCO", year: 1978, style: "Gol de Gemmill",
+        players: [
+          p("sco78-dal", 8, "Dalglish", "DAL", ["CA"], 82, "Craque"),
+          p("sco78-jor", 9, "Jordan", "JOR", ["CA"], 76, "Torre"),
+          p("sco78-sou", 11, "Souness", "SOU", ["MC"], 78, "Lider"),
+          p("sco78-gem", 15, "Gemmill", "GEM", ["MEI"], 78, "Golaco"),
+          p("sco78-har", 10, "Hartford", "HAR", ["MC"], 74, "Motor"),
+          p("sco78-rio", 6, "Rioch", "RIO", ["VOL"], 74, "Marcacao"),
+          p("sco78-buc", 4, "Buchan", "BUC", ["ZAG"], 76, "Firme"),
+          p("sco78-bur", 5, "K. Burns", "BUR", ["ZAG"], 76, "Solido"),
+          p("sco78-don", 2, "Donachie", "DON", ["LD"], 74, "Ala"),
+          p("sco78-for", 3, "Forsyth", "FOR", ["LE"], 74, "Apoio"),
+          p("sco78-rou", 1, "Rough", "ROU", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "at-1978", country: "Austria", code: "AT", year: 1978, style: "Cordoba historico",
+        players: [
+          p("at78-kra", 9, "Krankl", "KRA", ["CA"], 82, "Craque"),
+          p("at78-pro", 8, "Prohaska", "PRO", ["MEI"], 80, "Cerebro"),
+          p("at78-kre", 11, "Kreuz", "KRE", ["PE"], 74, "Correria"),
+          p("at78-jar", 10, "Jara", "JAR", ["MEI"], 74, "Passe"),
+          p("at78-hic", 6, "Hickersberger", "HIC", ["MC"], 74, "Motor"),
+          p("at78-web", 4, "Weber", "WEB", ["VOL"], 74, "Marcacao"),
+          p("at78-pez", 5, "Pezzey", "PEZ", ["ZAG"], 78, "Firme"),
+          p("at78-obe", 3, "Obermayer", "OBE", ["ZAG"], 74, "Solido"),
+          p("at78-sar", 2, "Sara", "SAR", ["LD"], 74, "Ala"),
+          p("at78-bre", 15, "Breitenberger", "BRE", ["LE"], 73, "Apoio"),
+          p("at78-kon", 1, "Koncilia", "KON", ["GOL"], 76, "Seguro")
+        ]
+      },
+      {
+        key: "fr-1978", country: "Franca", code: "FR", year: 1978, style: "Nasce Platini",
+        players: [
+          p("fr78-pla", 10, "Platini", "PLA", ["MEI"], 80, "Joia"),
+          p("fr78-roc", 20, "Rocheteau", "ROC", ["CA"], 76, "Faro"),
+          p("fr78-lac", 9, "Lacombe", "LAC", ["CA"], 74, "Area"),
+          p("fr78-six", 11, "Six", "SIX", ["PE"], 74, "Correria"),
+          p("fr78-dal", 7, "Dalger", "DAL", ["PD"], 73, "Drible"),
+          p("fr78-bat", 6, "Bathenay", "BAT", ["MC"], 74, "Motor"),
+          p("fr78-tre", 8, "Tresor", "TRE", ["ZAG"], 78, "Elegante"),
+          p("fr78-lop", 4, "Lopez", "LOP", ["ZAG"], 74, "Firme"),
+          p("fr78-jan", 2, "Janvion", "JAN", ["LD"], 74, "Ala"),
+          p("fr78-bos", 3, "Bossis", "BOS", ["LE"], 74, "Apoio"),
+          p("fr78-bde", 1, "Bertrand-Demanes", "BDE", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "pe-1978", country: "Peru", code: "PE", year: 1978, style: "Cubillas encanta",
+        players: [
+          p("pe78-cub", 10, "Cubillas", "CUB", ["MEI"], 82, "Craque"),
+          p("pe78-obl", 11, "Oblitas", "OBL", ["PE"], 76, "Drible"),
+          p("pe78-mun", 7, "Munante", "MUN", ["PD"], 76, "Velocidade"),
+          p("pe78-cue", 8, "Cueto", "CUE", ["MEI"], 76, "Criacao"),
+          p("pe78-vel", 6, "Velasquez", "VEL", ["VOL"], 74, "Motor"),
+          p("pe78-lar", 9, "La Rosa", "LAR", ["CA"], 74, "Area"),
+          p("pe78-chu", 5, "Chumpitaz", "CHU", ["ZAG"], 78, "Capitao"),
+          p("pe78-man", 4, "Manzo", "MAN", ["ZAG"], 74, "Firme"),
+          p("pe78-dua", 2, "Duarte", "DUA", ["LD"], 74, "Ala"),
+          p("pe78-roj", 3, "R. Rojas", "ROJ", ["LE"], 74, "Apoio"),
+          p("pe78-qui", 1, "Quiroga", "QUI", ["GOL"], 76, "El Loco")
+        ]
+      },
+      {
+        key: "mx-1978", country: "Mexico", code: "MX", year: 1978, style: "Tri em formacao",
+        players: [
+          p("mx78-hug", 11, "Hugo Sanchez", "HUG", ["CA"], 76, "Joia"),
+          p("mx78-isi", 9, "Isiordia", "ISI", ["CA"], 74, "Area"),
+          p("mx78-men", 10, "Mendizabal", "MEN", ["MEI"], 74, "Criacao"),
+          p("mx78-cue", 8, "Cuellar", "CUE", ["MC"], 74, "Passe"),
+          p("mx78-dlt", 6, "De la Torre", "DLT", ["VOL"], 74, "Motor"),
+          p("mx78-ran", 7, "G. Rangel", "RAN", ["PD"], 73, "Correria"),
+          p("mx78-vaz", 2, "Vazquez Ayala", "VAZ", ["ZAG"], 74, "Capitao"),
+          p("mx78-ram", 4, "J. Ramos", "RAM", ["ZAG"], 73, "Firme"),
+          p("mx78-mar", 5, "A. Martinez", "MAR", ["LD"], 73, "Ala"),
+          p("mx78-ten", 3, "Tena", "TEN", ["LE"], 73, "Apoio"),
+          p("mx78-rey", 1, "P. Reyes", "REY", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "nl-1974", country: "Holanda", code: "NL", year: 1974, style: "Futebol total",
+        players: [
+          p("nl74-cru", 14, "Cruyff", "CRU", ["CA"], 90, "Genio"),
+          p("nl74-nee", 13, "Neeskens", "NEE", ["MC"], 84, "Motor"),
+          p("nl74-van", 8, "Van Hanegem", "VAN", ["MC"], 82, "Cerebro"),
+          p("nl74-ren", 12, "Rensenbrink", "REN", ["PE"], 80, "Drible"),
+          p("nl74-rep", 16, "Rep", "REP", ["PD"], 78, "Faro"),
+          p("nl74-jan", 6, "W. Jansen", "JAN", ["VOL"], 78, "Marcacao"),
+          p("nl74-haa", 2, "Haan", "HAA", ["ZAG"], 78, "Saida"),
+          p("nl74-rij", 20, "Rijsbergen", "RIJ", ["ZAG"], 74, "Firme"),
+          p("nl74-suu", 4, "Suurbier", "SUU", ["LD"], 76, "Ala"),
+          p("nl74-kro", 5, "Krol", "KRO", ["LE"], 80, "Elegante"),
+          p("nl74-jon", 8, "Jongbloed", "JON", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "de-1974", country: "Alemanha", code: "DE", year: 1974, style: "Campea de Beckenbauer",
+        players: [
+          p("de74-bec", 5, "Beckenbauer", "BEC", ["ZAG"], 90, "Kaiser"),
+          p("de74-mul", 13, "G. Muller", "MUL", ["CA"], 90, "Bomber"),
+          p("de74-ove", 12, "Overath", "OVE", ["MC"], 84, "Maestro"),
+          p("de74-bre", 3, "Breitner", "BRE", ["LE"], 82, "Canhota"),
+          p("de74-hoe", 14, "Hoeness", "HOE", ["MEI"], 80, "Chegada"),
+          p("de74-bon", 6, "Bonhof", "BON", ["VOL"], 78, "Motor"),
+          p("de74-gra", 16, "Grabowski", "GRA", ["PD"], 76, "Drible"),
+          p("de74-hol", 17, "Holzenbein", "HOL", ["PE"], 76, "Correria"),
+          p("de74-swz", 4, "Schwarzenbeck", "SWZ", ["ZAG"], 76, "Firme"),
+          p("de74-vog", 2, "Vogts", "VOG", ["LD"], 80, "Marcador"),
+          p("de74-mai", 1, "Maier", "MAI", ["GOL"], 84, "Paredao")
+        ]
+      },
+      {
+        key: "br-1974", country: "Brasil", code: "BR", year: 1974, style: "Fim de ciclo",
+        players: [
+          p("br74-riv", 10, "Rivelino", "RIV", ["MEI"], 84, "Canhota"),
+          p("br74-jai", 7, "Jairzinho", "JAI", ["PD"], 82, "Furacao"),
+          p("br74-pce", 11, "Paulo Cesar", "PCE", ["PE"], 76, "Drible"),
+          p("br74-dir", 8, "Dirceu", "DIR", ["MEI"], 76, "Criacao"),
+          p("br74-car", 5, "Carpegiani", "CAR", ["VOL"], 74, "Motor"),
+          p("br74-val", 9, "Valdomiro", "VAL", ["CA"], 74, "Correria"),
+          p("br74-pia", 4, "Piazza", "PIA", ["ZAG"], 78, "Firme"),
+          p("br74-mpe", 3, "Marinho Peres", "MPE", ["ZAG"], 74, "Solido"),
+          p("br74-zma", 2, "Ze Maria", "ZMA", ["LD"], 74, "Ala"),
+          p("br74-mch", 6, "Marinho Chagas", "MCH", ["LE"], 76, "Apoio"),
+          p("br74-lea", 1, "Leao", "LEA", ["GOL"], 78, "Seguro")
+        ]
+      },
+      {
+        key: "it-1974", country: "Italia", code: "IT", year: 1974, style: "Veteranos azzurros",
+        players: [
+          p("it74-riv", 11, "Riva", "RIV", ["CA"], 84, "Craque"),
+          p("it74-rve", 10, "Rivera", "RVE", ["MEI"], 84, "Golden Boy"),
+          p("it74-maz", 16, "Mazzola", "MAZ", ["MEI"], 82, "Classe"),
+          p("it74-chi", 20, "Chinaglia", "CHI", ["CA"], 78, "Area"),
+          p("it74-cap", 14, "Capello", "CAP", ["MC"], 78, "Passe"),
+          p("it74-ben", 13, "Benetti", "BEN", ["VOL"], 74, "Marcacao"),
+          p("it74-bur", 2, "Burgnich", "BUR", ["ZAG"], 78, "Firme"),
+          p("it74-mor", 5, "Morini", "MOR", ["ZAG"], 74, "Solido"),
+          p("it74-spi", 6, "Spinosi", "SPI", ["LD"], 74, "Ala"),
+          p("it74-fac", 3, "Facchetti", "FAC", ["LE"], 84, "Capitao"),
+          p("it74-zof", 1, "Zoff", "ZOF", ["GOL"], 84, "Paredao")
+        ]
+      },
+      {
+        key: "ar-1974", country: "Argentina", code: "AR", year: 1974, style: "Nasce Kempes",
+        players: [
+          p("ar74-kem", 9, "Kempes", "KEM", ["CA"], 80, "Joia"),
+          p("ar74-hou", 11, "Houseman", "HOU", ["PE"], 76, "Drible"),
+          p("ar74-yaz", 19, "Yazalde", "YAZ", ["CA"], 76, "Faro"),
+          p("ar74-bab", 8, "Babington", "BAB", ["MC"], 76, "Criacao"),
+          p("ar74-bri", 10, "Brindisi", "BRI", ["MEI"], 76, "Passe"),
+          p("ar74-tel", 5, "Telch", "TEL", ["VOL"], 74, "Motor"),
+          p("ar74-wol", 7, "Wolff", "WOL", ["PD"], 74, "Correria"),
+          p("ar74-per", 2, "Perfumo", "PER", ["ZAG"], 78, "Capitao"),
+          p("ar74-her", 4, "Heredia", "HER", ["ZAG"], 74, "Firme"),
+          p("ar74-gla", 3, "Glaria", "GLA", ["LD"], 74, "Ala"),
+          p("ar74-car", 1, "Carnevali", "CAR", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "sco-1974", country: "Escocia", code: "SCO", year: 1974, style: "Invicta eliminada",
+        players: [
+          p("sco74-bre", 4, "Bremner", "BRE", ["MC"], 80, "Capitao"),
+          p("sco74-law", 9, "D. Law", "LAW", ["CA"], 80, "Lenda"),
+          p("sco74-dal", 8, "Dalglish", "DAL", ["CA"], 78, "Joia"),
+          p("sco74-jor", 14, "Jordan", "JOR", ["CA"], 76, "Torre"),
+          p("sco74-lor", 10, "Lorimer", "LOR", ["PD"], 78, "Canhao"),
+          p("sco74-hay", 6, "Hay", "HAY", ["VOL"], 74, "Marcacao"),
+          p("sco74-buc", 5, "Buchan", "BUC", ["ZAG"], 74, "Firme"),
+          p("sco74-hol", 15, "Holton", "HOL", ["ZAG"], 73, "Torre"),
+          p("sco74-jar", 2, "Jardine", "JAR", ["LD"], 74, "Ala"),
+          p("sco74-mcg", 3, "McGrain", "MCG", ["LE"], 76, "Apoio"),
+          p("sco74-har", 1, "Harvey", "HAR", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "cl-1974", country: "Chile", code: "CL", year: 1974, style: "Figueroa comanda",
+        players: [
+          p("cl74-fig", 2, "E. Figueroa", "FIG", ["ZAG"], 82, "Craque"),
+          p("cl74-cas", 10, "Caszely", "CAS", ["CA"], 78, "Faro"),
+          p("cl74-rei", 8, "Reinoso", "REI", ["MEI"], 76, "Criacao"),
+          p("cl74-ahu", 9, "Ahumada", "AHU", ["PD"], 74, "Correria"),
+          p("cl74-pae", 6, "Paez", "PAE", ["MC"], 74, "Motor"),
+          p("cl74-val", 5, "A. Valdes", "VAL", ["VOL"], 74, "Marcacao"),
+          p("cl74-qui", 4, "Quintano", "QUI", ["ZAG"], 74, "Firme"),
+          p("cl74-gar", 3, "Garcia", "GAR", ["LD"], 73, "Ala"),
+          p("cl74-lar", 15, "Lara", "LAR", ["LE"], 73, "Apoio"),
+          p("cl74-vel", 11, "Veliz", "VEL", ["PE"], 73, "Drible"),
+          p("cl74-vll", 1, "Vallejos", "VLL", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "pl-1974", country: "Polonia", code: "PL", year: 1974, style: "Terceiro lugar de ouro",
+        players: [
+          p("pl74-lat", 9, "Lato", "LAT", ["PD"], 84, "Artilheiro"),
+          p("pl74-dey", 10, "Deyna", "DEY", ["MC"], 84, "Capitao"),
+          p("pl74-gad", 11, "Gadocha", "GAD", ["PE"], 80, "Drible"),
+          p("pl74-sza", 8, "Szarmach", "SZA", ["CA"], 78, "Faro"),
+          p("pl74-kas", 7, "Kasperczak", "KAS", ["MEI"], 74, "Correria"),
+          p("pl74-mas", 6, "Maszczyk", "MAS", ["MC"], 74, "Motor"),
+          p("pl74-zmu", 4, "Zmuda", "ZMU", ["ZAG"], 78, "Firme"),
+          p("pl74-gor", 5, "Gorgon", "GOR", ["ZAG"], 76, "Torre"),
+          p("pl74-szy", 2, "Szymanowski", "SZY", ["LD"], 74, "Ala"),
+          p("pl74-mus", 3, "Musial", "MUS", ["LE"], 74, "Apoio"),
+          p("pl74-tom", 1, "Tomaszewski", "TOM", ["GOL"], 80, "Paredao")
+        ]
+      },
+      {
+        key: "se-1974", country: "Suecia", code: "SE", year: 1974, style: "Nordicos aguerridos",
+        players: [
+          p("se74-eds", 9, "Edstrom", "EDS", ["CA"], 78, "Torre"),
+          p("se74-tor", 11, "Torstensson", "TOR", ["CA"], 74, "Faro"),
+          p("se74-sjo", 10, "Sjoberg", "SJO", ["MEI"], 74, "Criacao"),
+          p("se74-gra", 8, "Grahn", "GRA", ["MC"], 74, "Passe"),
+          p("se74-lar", 6, "B. Larsson", "LAR", ["VOL"], 74, "Motor"),
+          p("se74-tap", 7, "Tapper", "TAP", ["PD"], 74, "Correria"),
+          p("se74-nor", 4, "Nordqvist", "NOR", ["ZAG"], 76, "Capitao"),
+          p("se74-kar", 5, "S. Karlsson", "KAR", ["ZAG"], 74, "Firme"),
+          p("se74-and", 2, "R. Andersson", "AND", ["LD"], 73, "Ala"),
+          p("se74-aug", 3, "Augustsson", "AUG", ["LE"], 73, "Apoio"),
+          p("se74-hel", 1, "Hellstrom", "HEL", ["GOL"], 76, "Reflexo")
+        ]
+      },
+      {
+        key: "uy-1974", country: "Uruguai", code: "UY", year: 1974, style: "Garra veterana",
+        players: [
+          p("uy74-mor", 9, "Morena", "MOR", ["CA"], 78, "Matador"),
+          p("uy74-roc", 10, "Rocha", "ROC", ["MEI"], 78, "Craque"),
+          p("uy74-cub", 7, "Cubilla", "CUB", ["PD"], 74, "Drible"),
+          p("uy74-mil", 11, "Milar", "MIL", ["PE"], 73, "Correria"),
+          p("uy74-mon", 5, "Montero Castillo", "MON", ["MC"], 74, "Motor"),
+          p("uy74-jau", 6, "Jauregui", "JAU", ["VOL"], 74, "Marcacao"),
+          p("uy74-mas", 2, "Masnik", "MAS", ["ZAG"], 74, "Firme"),
+          p("uy74-cor", 8, "Corbo", "COR", ["CA"], 73, "Area"),
+          p("uy74-for", 4, "P. Forlan", "FOR", ["LD"], 74, "Ala"),
+          p("uy74-pav", 3, "Pavoni", "PAV", ["LE"], 74, "Apoio"),
+          p("uy74-maz", 1, "Mazurkiewicz", "MAZ", ["GOL"], 78, "Paredao")
+        ]
+      },
+      {
+        key: "en-1970", country: "Inglaterra", code: "EN", year: 1970, style: "Campea defensora",
+        players: [
+          p("en70-cha", 9, "B. Charlton", "CHA", ["MEI"], 86, "Lenda"),
+          p("en70-hur", 10, "Hurst", "HUR", ["CA"], 82, "Artilheiro"),
+          p("en70-pet", 16, "Peters", "PET", ["MEI"], 80, "Chegada"),
+          p("en70-bal", 7, "A. Ball", "BAL", ["MC"], 80, "Motor"),
+          p("en70-mul", 4, "Mullery", "MUL", ["VOL"], 76, "Marcacao"),
+          p("en70-lee", 8, "F. Lee", "LEE", ["PD"], 76, "Correria"),
+          p("en70-moo", 6, "B. Moore", "MOO", ["ZAG"], 86, "Capitao"),
+          p("en70-lab", 5, "Labone", "LAB", ["ZAG"], 76, "Firme"),
+          p("en70-new", 2, "K. Newton", "NEW", ["LD"], 74, "Ala"),
+          p("en70-coo", 3, "T. Cooper", "COO", ["LE"], 74, "Apoio"),
+          p("en70-ban", 1, "Banks", "BAN", ["GOL"], 86, "Defesa do seculo")
+        ]
+      },
+      {
+        key: "de-1970", country: "Alemanha", code: "DE", year: 1970, style: "Semifinal do seculo",
+        players: [
+          p("de70-mul", 13, "G. Muller", "MUL", ["CA"], 90, "Bomber"),
+          p("de70-bec", 5, "Beckenbauer", "BEC", ["MEI"], 88, "Kaiser"),
+          p("de70-ove", 12, "Overath", "OVE", ["MC"], 82, "Maestro"),
+          p("de70-see", 9, "Seeler", "SEE", ["CA"], 82, "Capitao"),
+          p("de70-hel", 11, "Held", "HEL", ["PE"], 78, "Drible"),
+          p("de70-gra", 16, "Grabowski", "GRA", ["PD"], 76, "Correria"),
+          p("de70-swc", 4, "Schnellinger", "SWC", ["ZAG"], 78, "Firme"),
+          p("de70-sch", 6, "Schulz", "SCH", ["ZAG"], 76, "Solido"),
+          p("de70-vog", 2, "Vogts", "VOG", ["LD"], 78, "Marcador"),
+          p("de70-hot", 3, "Hottges", "HOT", ["LE"], 74, "Apoio"),
+          p("de70-mai", 1, "Maier", "MAI", ["GOL"], 82, "Paredao")
+        ]
+      },
+      {
+        key: "pe-1970", country: "Peru", code: "PE", year: 1970, style: "Geracao encantadora",
+        players: [
+          p("pe70-cub", 10, "Cubillas", "CUB", ["MEI"], 82, "Craque"),
+          p("pe70-sot", 11, "Sotil", "SOT", ["PE"], 78, "Drible"),
+          p("pe70-gal", 9, "Gallardo", "GAL", ["CA"], 76, "Faro"),
+          p("pe70-leo", 7, "Leon", "LEO", ["CA"], 74, "Area"),
+          p("pe70-cha", 8, "Challe", "CHA", ["MC"], 74, "Motor"),
+          p("pe70-mif", 6, "Mifflin", "MIF", ["VOL"], 76, "Marcacao"),
+          p("pe70-chu", 5, "Chumpitaz", "CHU", ["ZAG"], 78, "Capitao"),
+          p("pe70-fer", 4, "H. Fernandez", "FER", ["ZAG"], 74, "Firme"),
+          p("pe70-cam", 2, "E. Campos", "CAM", ["LD"], 74, "Ala"),
+          p("pe70-fue", 3, "Fuentes", "FUE", ["LE"], 73, "Apoio"),
+          p("pe70-rub", 1, "Rubinos", "RUB", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "bg-1970", country: "Bulgaria", code: "BG", year: 1970, style: "Talento do Leste",
+        players: [
+          p("bg70-asp", 9, "Asparuhov", "ASP", ["CA"], 78, "Craque"),
+          p("bg70-zhe", 8, "Zhekov", "ZHE", ["CA"], 78, "Matador"),
+          p("bg70-bon", 10, "Bonev", "BON", ["MEI"], 78, "Joia"),
+          p("bg70-nik", 11, "Nikodimov", "NIK", ["MEI"], 74, "Criacao"),
+          p("bg70-ala", 6, "Aladzhov", "ALA", ["MC"], 74, "Passe"),
+          p("bg70-pop", 5, "Popov", "POP", ["VOL"], 74, "Motor"),
+          p("bg70-pen", 4, "D. Penev", "PEN", ["ZAG"], 74, "Firme"),
+          p("bg70-gag", 3, "Gaganelov", "GAG", ["ZAG"], 74, "Solido"),
+          p("bg70-dim", 2, "Dimitrov", "DIM", ["LD"], 73, "Ala"),
+          p("bg70-sha", 7, "Shalamanov", "SHA", ["LE"], 73, "Apoio"),
+          p("bg70-sim", 1, "Simeonov", "SIM", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "ro-1970", country: "Romenia", code: "RO", year: 1970, style: "Dobrin e Dumitrache",
+        players: [
+          p("ro70-dob", 10, "Dobrin", "DOB", ["MEI"], 78, "Talento"),
+          p("ro70-dum", 9, "Dumitrache", "DUM", ["CA"], 78, "Faro"),
+          p("ro70-luc", 11, "Lucescu", "LUC", ["MEI"], 76, "Criacao"),
+          p("ro70-nea", 19, "Neagu", "NEA", ["CA"], 74, "Area"),
+          p("ro70-dmt", 8, "Dumitru", "DMT", ["VOL"], 74, "Motor"),
+          p("ro70-nun", 6, "F. Nunweiller", "NUN", ["MC"], 74, "Marcacao"),
+          p("ro70-din", 5, "Dinu", "DIN", ["ZAG"], 76, "Firme"),
+          p("ro70-lup", 4, "N. Lupescu", "LUP", ["ZAG"], 74, "Solido"),
+          p("ro70-sat", 2, "Satmareanu", "SAT", ["LD"], 74, "Ala"),
+          p("ro70-moc", 3, "Mocanu", "MOC", ["LE"], 73, "Apoio"),
+          p("ro70-ada", 1, "Adamache", "ADA", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "be-1970", country: "Belgica", code: "BE", year: 1970, style: "Van Himst",
+        players: [
+          p("be70-vhi", 10, "Van Himst", "VHI", ["MEI"], 80, "Craque"),
+          p("be70-dev", 9, "Devrindt", "DEV", ["CA"], 74, "Faro"),
+          p("be70-pol", 11, "Polleunis", "POL", ["CA"], 73, "Area"),
+          p("be70-sem", 7, "Semmeling", "SEM", ["PD"], 74, "Correria"),
+          p("be70-vmo", 8, "Van Moer", "VMO", ["MC"], 76, "Motor"),
+          p("be70-doc", 6, "Dockx", "DOC", ["VOL"], 74, "Marcacao"),
+          p("be70-thi", 4, "Thissen", "THI", ["ZAG"], 74, "Firme"),
+          p("be70-dew", 5, "Dewalque", "DEW", ["ZAG"], 74, "Solido"),
+          p("be70-hey", 2, "Heylens", "HEY", ["LD"], 74, "Ala"),
+          p("be70-jec", 3, "Jeck", "JEC", ["LE"], 73, "Apoio"),
+          p("be70-pio", 1, "Piot", "PIO", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "mx-1970", country: "Mexico", code: "MX", year: 1970, style: "Anfitria festiva",
+        players: [
+          p("mx70-bor", 11, "E. Borja", "BOR", ["CA"], 76, "Faro"),
+          p("mx70-fra", 9, "Fragoso", "FRA", ["CA"], 74, "Area"),
+          p("mx70-val", 10, "Valdivia", "VAL", ["MEI"], 74, "Criacao"),
+          p("mx70-pad", 7, "A. Padilla", "PAD", ["PD"], 73, "Correria"),
+          p("mx70-mun", 8, "Munguia", "MUN", ["MC"], 74, "Passe"),
+          p("mx70-gon", 6, "G. Gonzalez", "GON", ["VOL"], 74, "Marcacao"),
+          p("mx70-pen", 4, "Pena", "PEN", ["ZAG"], 74, "Capitao"),
+          p("mx70-guz", 5, "Guzman", "GUZ", ["ZAG"], 73, "Firme"),
+          p("mx70-van", 2, "Vantolra", "VAN", ["LD"], 73, "Ala"),
+          p("mx70-per", 3, "H. Perez", "PER", ["LE"], 73, "Apoio"),
+          p("mx70-cal", 1, "Calderon", "CAL", ["GOL"], 74, "Seguro")
+        ]
+      },
+      {
+        key: "uy-1970", country: "Uruguai", code: "UY", year: 1970, style: "Quarto lugar",
+        players: [
+          p("uy70-cub", 7, "Cubilla", "CUB", ["PD"], 76, "Drible"),
+          p("uy70-mor", 9, "Morales", "MOR", ["CA"], 74, "Faro"),
+          p("uy70-esp", 11, "Esparrago", "ESP", ["CA"], 74, "Area"),
+          p("uy70-man", 10, "Maneiro", "MAN", ["MEI"], 74, "Criacao"),
+          p("uy70-mon", 8, "Montero Castillo", "MON", ["MC"], 74, "Motor"),
+          p("uy70-muj", 6, "Mujica", "MUJ", ["VOL"], 74, "Marcacao"),
+          p("uy70-anc", 2, "Ancheta", "ANC", ["ZAG"], 76, "Firme"),
+          p("uy70-mat", 4, "Matosas", "MAT", ["ZAG"], 74, "Solido"),
+          p("uy70-ubi", 5, "Ubinas", "UBI", ["LD"], 73, "Ala"),
+          p("uy70-cor", 3, "Cortes", "COR", ["LE"], 73, "Apoio"),
+          p("uy70-maz", 1, "Mazurkiewicz", "MAZ", ["GOL"], 80, "Paredao")
+        ]
+      },
     // <<APPEND>>
   ];
 })();
