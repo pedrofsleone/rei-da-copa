@@ -252,12 +252,13 @@ O que ja funciona:
 - Botao `Compartilhar` com Web Share API ou clipboard.
 - Botao `Jogar de novo`.
 
-Dados:
-- Base provisoria embutida no HTML, hoje com 16 elencos de Copa.
-- Selecoes/anos de exemplo: Brasil 2002, Brasil 1970, Franca 1998, Franca 2018, Argentina 1986, Argentina 2022, Alemanha 2014, Espanha 2010, Alemanha 2002, Italia 1970, Brasil 1998, Croacia 2018, Inglaterra 1986, Franca 2022, Argentina 2014 e Holanda 2010.
-- Alvo de cobertura inspirado no arquivo publico do 7a0 documentado em `COVERAGE_TARGETS.md`: 20 Copas (1950-2026), 263 elencos e 52 paises. Este arquivo e checklist de ano+selecao; nao inclui jogadores nem ratings copiados.
-- Regua de overall propria do Rei da Copa documentada em `RATING_GUIDE.md`: nota mede o nivel naquela Copa especifica, nao carreira inteira; 99 = pico historico absoluto; 95-98 = lenda de Copa; 90-94 = elite; 85-89 = peca-chave; 80-84 = bom titular; 75-79 = util; 68-74 = reserva/fraco. Os dados atuais foram recalibrados por essa regua.
-- Os dados sao para prototipo de jogabilidade e expansao curada, nao copia de base/overall de outro produto.
+Dados (ATUALIZADO 2026-07-06 - BASE REAL DO 7a0 INTEGRADA):
+- A base agora vive em `squads.js` (`window.SQUADS`), carregado por `<script src="squads.js">` ANTES do script principal do `index.html`. O `index.html` faz `const squads = window.SQUADS || []`.
+- COBERTURA COMPLETA: 263 elencos, 5911 jogadores, 52 paises, 20 Copas (1950-2026). Dados vindos da base real recuperada do 7a0 em `C:\Users\pedro\Desktop\7a0-estudo\outputs\7a0-recuperacao-20260706\base_7a0_recuperada.xlsx` (nomes, notas e flags de lenda do proprio acervo 7a0). Cada elenco tem ~18-26 jogadores (a esquadra real, nao so 11).
+- GERADOR: `C:\Users\pedro\Desktop\7a0-estudo\gen_squads.py` le a planilha e regenera `squads.js`. Mapeia posicoes (Goalkeeper->GOL, Centre-back->ZAG, Left-back->LE, Right-back->LD, Defensive midfielder->VOL, Midfielder->MC, Attacking midfielder->MEI, Left/Right winger->PE/PD, Centre-forward->CA), traduz paises para PT, remove acentos, deriva `style` da media do elenco, e gera `short` (sigla de 3 letras) UNICA dentro de cada elenco. Numeros de camisa nao existem na base (campo `--`), entao sao sequenciais. Para atualizar a base: rodar `python 7a0-estudo/gen_squads.py` e commitar `squads.js`.
+- HISTORICO: antes desta integracao a base era curada manualmente (16 e depois 263 elencos best-effort). Foi toda substituida pela base real do 7a0. Backup da versao manual em `/tmp/squads_hand_backup.js` (efemero).
+- `RATING_GUIDE.md` continua descrevendo a escala de nota; as notas atuais sao as do acervo 7a0, compativeis com a mesma faixa (~68-99).
+- Chave do elenco (`key`) agora e no formato `ANO-cod` (ex.: `2002-bra`); a logica de reroll usa `country`/`year`/`key`, entao o formato novo funciona normalmente. Validado no preview: 263 elencos carregam, draft sorteia e lista jogadores reais, sem erro de console.
 
 Validacao feita:
 - Carregamento inicial em viewport 390 x 844.

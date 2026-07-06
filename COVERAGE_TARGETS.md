@@ -1,10 +1,14 @@
-# Rei da Copa - Alvo de Cobertura de Elencos
+# Rei da Copa - Cobertura de Elencos
 
-Ultima atualizacao: 2026-07-04
+Ultima atualizacao: 2026-07-06
 
-Este arquivo lista anos e selecoes que aparecem no arquivo publico do 7a0, para servir como checklist de expansao do Rei da Copa. A lista cobre apenas ano + selecao, que sao dados factuais de cobertura; jogadores e overalls devem ser criados/curados pelo Rei da Copa usando `RATING_GUIDE.md`.
+STATUS: COBERTURA COMPLETA E INTEGRADA. A base do jogo (`squads.js`) agora usa a
+base real recuperada do 7a0 (`base_7a0_recuperada.xlsx`), gerada por
+`7a0-estudo/gen_squads.py`: 263 elencos, 5911 jogadores, 52 paises, 20 Copas
+(1950-2026), com nomes, notas e flags de lenda do proprio acervo 7a0. Este
+arquivo permanece como checklist historico da cobertura alvo.
 
-Resumo do alvo: 20 Copas, 263 elencos e 52 paises.
+Resumo: 20 Copas, 263 elencos e 52 paises (100% presentes em `squads.js`).
 
 ## Por Copa
 
@@ -33,6 +37,13 @@ Resumo do alvo: 20 Copas, 263 elencos e 52 paises.
 
 Alemanha, Argelia, Argentina, Australia, Austria, Belgica, Brasil, Bulgaria, Camaroes, Chile, Colombia, Coreia do Sul, Costa Rica, Costa do Marfim, Croacia, Dinamarca, Egito, Equador, Escocia, Espanha, Estados Unidos, Franca, Gana, Grecia, Holanda, Hungria, Inglaterra, Irlanda, Irlanda do Norte, Italia, Iugoslavia, Japao, Marrocos, Mexico, Nigeria, Paraguai, Pais de Gales, Peru, Polonia, Portugal, Republica Tcheca, Romenia, Russia, Senegal, Servia, Suecia, Suica, Tchecoslovaquia, Turquia, Ucrania, Uniao Sovietica, Uruguai.
 
-## Proximo passo sugerido
+## Historico
 
-Migrar a base embutida no `index.html` para um arquivo de dados separado antes de preencher esses 263 elencos. Para cada elenco, criar jogadores e notas proprias do Rei da Copa com a regua de `RATING_GUIDE.md`.
+- Base migrada do `index.html` para `squads.js` (`window.SQUADS`, carregado antes do script principal).
+- Base preenchida com os 263 elencos usando a base real recuperada do 7a0
+  (`base_7a0_recuperada.xlsx`), via `7a0-estudo/gen_squads.py`. O gerador mapeia
+  posicoes (Goalkeeper->GOL, Centre-back->ZAG, Left-back->LE, Right-back->LD,
+  Defensive midfielder->VOL, Midfielder->MC, Attacking midfielder->MEI,
+  Left/Right winger->PE/PD, Centre-forward->CA), traduz paises para portugues,
+  remove acentos e gera siglas (`short`) unicas dentro de cada elenco.
+- Para regenerar apos atualizar a planilha: rodar `python 7a0-estudo/gen_squads.py`.
