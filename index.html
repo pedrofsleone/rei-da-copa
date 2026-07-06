@@ -135,7 +135,9 @@
     }
 
     /* Tela de draft ao vivo com visual poster: paineis claros (via override de
-       variaveis de tema) sobre a colagem aquarela, com jogadores nas laterais. */
+       variaveis de tema) sobre a colagem aquarela, com jogadores nas laterais.
+       O fundo fica FIXO no viewport (cover) num ::before, entao a arte mantem
+       a proporcao mesmo quando a lista de jogadores deixa a pagina comprida. */
     #tourneyDraftView {
       --bg: oklch(0.965 0.015 92);
       --panel: oklch(0.995 0 0);
@@ -146,9 +148,18 @@
       --faint: oklch(0.52 0 0);
       --line: oklch(0.14 0 0);
       color: var(--ink);
-      padding-left: 11%;
-      padding-right: 11%;
-      background: oklch(0.965 0.02 92) url("assets/draft-bg.jpg") center top / 100% 100% no-repeat;
+      padding-left: 6%;
+      padding-right: 6%;
+      isolation: isolate;
+    }
+
+    #tourneyDraftView::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: oklch(0.965 0.02 92) url("assets/draft-bg.jpg") center top / cover no-repeat;
+      pointer-events: none;
     }
 
     #tourneyDraftView .section-title,
