@@ -168,23 +168,59 @@
       color: var(--ink);
     }
 
-    /* Abas: chips claros com borda; a ativa vira preta com texto branco
-       (o fundo azul-escuro global sumiria com o texto escuro deste tema). */
+    /* Abas: chips claros com borda; a ativa ganha borda preta + sombra dura
+       (sem fundo escuro — o azul global sumiria com o texto deste tema). */
     #tourneyDraftView .td-tab {
       border-width: 2px;
+      background: var(--panel);
     }
 
     #tourneyDraftView .td-tab.is-active {
-      background: oklch(0.14 0 0);
+      background: var(--panel);
       border-color: oklch(0.14 0 0);
+      box-shadow: 3px 3px 0 oklch(0.14 0 0);
     }
 
-    #tourneyDraftView .td-tab.is-active .td-tab-name {
-      color: oklch(0.99 0 0);
+    #tourneyDraftView .td-navez {
+      color: oklch(0.55 0.21 28); /* vermelho legivel no chip claro */
     }
 
-    #tourneyDraftView .td-tab.is-active .td-tab-meta {
-      color: oklch(0.84 0 0);
+    /* Painel TEAM STATS: medias do time em aneis coloridos (overall/ataque/defesa) */
+    .td-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .td-stat {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+    }
+
+    .td-stat-ring {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 5px solid var(--gold);
+      background: var(--panel);
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    .td-stat-ring.is-green { border-color: var(--primary); }
+    .td-stat-ring.is-blue { border-color: var(--accent); }
+
+    .td-stat-label {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     #tourneyDraftView .panel {
@@ -2410,6 +2446,26 @@
         </div>
         <div class="field" id="tdField"></div>
       </section>
+      <section class="panel panel-pad" id="tdStatsPanel">
+        <div class="section-head">
+          <h2 class="section-title">Team stats</h2>
+          <span class="hint">Media do seu time</span>
+        </div>
+        <div class="td-stats">
+          <div class="td-stat">
+            <span class="td-stat-ring" id="tdStatOverall">--</span>
+            <span class="td-stat-label">Overall</span>
+          </div>
+          <div class="td-stat">
+            <span class="td-stat-ring is-green" id="tdStatAttack">--</span>
+            <span class="td-stat-label">Ataque</span>
+          </div>
+          <div class="td-stat">
+            <span class="td-stat-ring is-blue" id="tdStatDefense">--</span>
+            <span class="td-stat-label">Defesa</span>
+          </div>
+        </div>
+      </section>
     </section>
 
     <section class="view" id="tourneyWaitView" aria-label="Torneio">
@@ -2686,6 +2742,9 @@
       tdFieldHint: document.getElementById("tdFieldHint"),
       tdFieldTitle: document.getElementById("tdFieldTitle"),
       tdFieldPanel: document.getElementById("tdFieldPanel"),
+      tdStatOverall: document.getElementById("tdStatOverall"),
+      tdStatAttack: document.getElementById("tdStatAttack"),
+      tdStatDefense: document.getElementById("tdStatDefense"),
       tdField: document.getElementById("tdField"),
       tdCards: document.getElementById("tdCards"),
       tdPickPanel: document.getElementById("tdPickPanel"),
@@ -3566,6 +3625,17 @@
         el.tdFieldTitle.textContent = isMe ? "Seu campo" : `Campo de ${viewTeam.apelido || "Jogador"}`;
         fillWatchField(viewTeam, d, isMe);
       }
+
+      renderTdStats(myTeam);
+    }
+
+    // TEAM STATS do draft: medias do MEU time (overall/ataque/defesa) ao vivo
+    function renderTdStats(team) {
+      const has = onlineTeamPlayers(team).length > 0;
+      const s = has ? onlineTeamSummary(team) : null;
+      el.tdStatOverall.textContent = has ? s.overall : "--";
+      el.tdStatAttack.textContent = has ? s.attack : "--";
+      el.tdStatDefense.textContent = has ? s.defense : "--";
     }
 
     function renderTdTabs(r, d, activeId) {
