@@ -168,6 +168,25 @@
       color: var(--ink);
     }
 
+    /* Abas: chips claros com borda; a ativa vira preta com texto branco
+       (o fundo azul-escuro global sumiria com o texto escuro deste tema). */
+    #tourneyDraftView .td-tab {
+      border-width: 2px;
+    }
+
+    #tourneyDraftView .td-tab.is-active {
+      background: oklch(0.14 0 0);
+      border-color: oklch(0.14 0 0);
+    }
+
+    #tourneyDraftView .td-tab.is-active .td-tab-name {
+      color: oklch(0.99 0 0);
+    }
+
+    #tourneyDraftView .td-tab.is-active .td-tab-meta {
+      color: oklch(0.84 0 0);
+    }
+
     #tourneyDraftView .panel {
       border-width: 2px;
       box-shadow: 3px 3px 0 oklch(0.14 0 0);
@@ -1116,6 +1135,7 @@
       display: flex;
       gap: 8px;
       margin-top: 10px;
+      margin-bottom: 10px;
     }
 
     .td-card {
