@@ -134,6 +134,34 @@
       gap: 14px;
     }
 
+    /* Tela de draft ao vivo com visual poster: paineis claros (via override de
+       variaveis de tema) sobre a colagem aquarela, com jogadores nas laterais. */
+    #tourneyDraftView {
+      --bg: oklch(0.965 0.015 92);
+      --panel: oklch(0.995 0 0);
+      --panel-2: oklch(0.965 0.006 96);
+      --panel-3: oklch(0.925 0.012 96);
+      --ink: oklch(0.14 0 0);
+      --muted: oklch(0.40 0 0);
+      --faint: oklch(0.52 0 0);
+      --line: oklch(0.14 0 0);
+      color: var(--ink);
+      padding-left: 11%;
+      padding-right: 11%;
+      background: oklch(0.965 0.02 92) url("assets/draft-bg.jpg") center top / 100% 100% no-repeat;
+    }
+
+    #tourneyDraftView .section-title,
+    #tourneyDraftView .td-draw-head,
+    #tourneyDraftView .td-draw-head strong {
+      color: var(--ink);
+    }
+
+    #tourneyDraftView .panel {
+      border-width: 2px;
+      box-shadow: 3px 3px 0 oklch(0.14 0 0);
+    }
+
     .panel {
       border: 1px solid var(--line);
       border-radius: 16px;
