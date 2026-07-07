@@ -314,6 +314,11 @@
       color: oklch(0.45 0.14 152);
     }
 
+    #tourneyWaitView .bc-central .event.is-latest {
+      border-width: 2px;
+      box-shadow: 2px 2px 0 oklch(0.14 0 0);
+    }
+
     #tourneyWaitView .match-row.is-mine,
     #tourneyWaitView .standing-row.is-qualified {
       background: oklch(0.93 0.06 150);
@@ -4220,9 +4225,11 @@
       const atEnd = human && (b.evIndex || 0) >= (b.events || []).length;
       const isHost = isRoomHost(room);
       const mineMatch = match.home === mine || match.away === mine;
+      // Lance mais NOVO sempre no topo (a caixinha tem rolagem e o re-render
+      // periodico voltava pro comeco, escondendo os lances novos).
       const evShown = human ? (b.events || []).slice(0, b.evIndex || 0) : [];
       const timeline = human
-        ? (evShown.length ? evShown.map(e => `<div class="event"><span class="event-minute">${e.minute}'</span><span class="event-text">${escapeHtml(e.text)}</span></div>`).join("") : `<div class="empty-state">A bola vai rolar...</div>`)
+        ? (evShown.length ? [...evShown].reverse().map((e, i) => `<div class="event ${i === 0 ? "is-latest" : ""}"><span class="event-minute">${e.minute}'</span><span class="event-text">${escapeHtml(e.text)}</span></div>`).join("") : `<div class="empty-state">A bola vai rolar...</div>`)
         : `<div class="empty-state">Jogo entre CPUs — revelando rapido...</div>`;
       let controls = "";
       const needIds = human ? bcHumansNeedingSeen(order, b, teams, room) : [];
