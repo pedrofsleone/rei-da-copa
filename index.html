@@ -3479,7 +3479,10 @@
       window.RC_NET.patch(state.net.code, { tournament: buildTournament(room.teams || {}, cfgOr(room.config)) });
     }
 
+    let simHumanDelta = 0; // delta de dificuldade (aplicado em simulateTournamentMatch)
+
     function buildTournament(teams, cfg) {
+      simHumanDelta = DIFFICULTY_DELTA[cfg.difficulty] != null ? DIFFICULTY_DELTA[cfg.difficulty] : 1.5;
       const ids = orderTeamIds(teams, cfg);
       const startedAt = Date.now();
       if (cfg.format === "matamata") {
@@ -3596,6 +3599,15 @@
     function simulateTournamentMatch(home, away, teams, knockout, stage) {
       const a = tournamentStrength(teams[home]);
       const b = tournamentStrength(teams[away]);
+      // Dificuldade: em jogo HUMANO x CPU, o lado humano ganha/perde o delta.
+      const hHome = !!(teams[home] && teams[home].human);
+      const hAway = !!(teams[away] && teams[away].human);
+      if (hHome !== hAway && simHumanDelta) {
+        const t = hHome ? a : b;
+        t.overall += simHumanDelta;
+        t.attack += simHumanDelta;
+        t.defense += simHumanDelta;
+      }
       const pressure = clamp(50 + Math.round((a.overall - b.overall) * 1.8 + rand(-8, 8)), 25, 75);
       let hg = clamp(Math.round((a.attack - b.defense + 18) / 11 + Math.random() * 2.2), 0, 5);
       let ag = clamp(Math.round((b.attack - a.defense + 18) / 11 + Math.random() * 2.2), 0, 5);
@@ -4012,6 +4024,12 @@
 
     // TEAM STATS do draft: medias do MEU time (overall/ataque/defesa) ao vivo
     function renderTdStats(team) {
+      if (tdAlmanaque()) { // almanaque: a media entregaria as notas escondidas
+        el.tdStatOverall.textContent = "?";
+        el.tdStatAttack.textContent = "?";
+        el.tdStatDefense.textContent = "?";
+        return;
+      }
       const has = onlineTeamPlayers(team).length > 0;
       const s = has ? onlineTeamSummary(team) : null;
       el.tdStatOverall.textContent = has ? s.overall : "--";
@@ -4046,7 +4064,7 @@
         return `<div class="player-card watch-row">
           <span class="player-main"><span class="player-name">${hide ? "???" : escapeHtml(e.p.name)}${prot ? " 🛡" : ""}</span>
           <span class="player-detail">${hide ? "esperando revelar" : escapeHtml(e.p.natural)}</span></span>
-          <span class="rating">${hide ? "" : (e.p.rating || "")}</span></div>`;
+          <span class="rating">${hide ? "" : (tdAlmanaque() ? "?" : (e.p.rating || ""))}</span></div>`;
       }).join("") : `<div class="empty-state">Ainda nao escolheu ninguem.</div>`;
     }
 
@@ -4064,7 +4082,7 @@
           `<button class="player-card is-target" type="button" data-steal-team="${id}" data-steal-pid="${e.p.id}">
             <span class="player-main"><span class="player-name">${escapeHtml(e.p.name)}</span>
             <span class="player-detail">${escapeHtml(e.p.natural)} · ${escapeHtml(t.apelido || "")}</span></span>
-            <span class="rating">${e.p.rating || ""}</span></button>`).join("");
+            <span class="rating">${tdAlmanaque() ? "?" : (e.p.rating || "")}</span></button>`).join("");
         return rows;
       }).join("") || `<div class="empty-state">Nada pra roubar ainda.</div>`;
       el.tdWatchList.querySelectorAll("[data-steal-team]").forEach(b => b.onclick = () => {
@@ -4128,8 +4146,14 @@
       el.tdField.querySelectorAll('[data-tdcard="give"]').forEach(b => b.onclick = () => { state.tdCard = { step: "take", giveGroup: b.dataset.group, giveSlot: b.dataset.slot }; showToast("Agora escolha o jogador do adversario pra roubar."); render(); });
     }
 
+    // Modo ALMANAQUE: notas escondidas enquanto a sala esta em draft
+    function tdAlmanaque() {
+      const r = tdRoom();
+      return !!(r && r.status === "drafting" && cfgOr(r.config).notas === "almanaque");
+    }
+
     function draftPlayerLabel(player) {
-      return `${player.short} ${player.rating || "--"}`;
+      return tdAlmanaque() ? player.short : `${player.short} ${player.rating || "--"}`;
     }
 
     // Selos no chip do jogador: C = capitao (+5), +N = sincronia (selecao +5 / ano +3)
@@ -4270,7 +4294,7 @@
           <span class="kit-number">${p.num}</span>
           <span class="player-main"><span class="player-name">${p.name}</span>
           <span class="player-detail">${p.positions.join("/")} · ${p.tag}</span></span>
-          <span class="rating">${p.rating}</span></button>`;
+          <span class="rating">${tdAlmanaque() ? "?" : p.rating}</span></button>`;
       }).join("");
       el.tdPlayerList.querySelectorAll("[data-tp]").forEach(b => b.onclick = () => tdSelectPlayer(b.dataset.tp));
     }
@@ -4602,9 +4626,22 @@
         experience: cfg.experience || "assistir",
         spread: cfg.spread !== false,
         turnTime: cfg.turnTime || 30,
-        playback: cfg.playback === "livre" ? "livre" : "host"
+        playback: cfg.playback === "livre" ? "livre" : "host",
+        difficulty: ["perna", "peladeiro", "profissional", "craque"].includes(cfg.difficulty) ? cfg.difficulty : "peladeiro",
+        notas: cfg.notas === "almanaque" ? "almanaque" : "classico"
       };
     }
+
+    // Dificuldade: delta de forca aplicado ao time HUMANO contra CPU, calibrado
+    // por Monte Carlo na formula real do simulador pra bater as taxas de vitoria.
+    const DIFFICULTY_DELTA = { perna: 4, peladeiro: 1.5, profissional: -3, craque: -6.2 };
+    const DIFFICULTY_LABEL = { perna: "Perna de pau", peladeiro: "Peladeiro", profissional: "Profissional", craque: "Craque" };
+    const DIFFICULTY_HINT = {
+      perna: "Facil: voce vence ~70% dos jogos contra a CPU.",
+      peladeiro: "Medio: jogo parelho, ~50% de vitorias contra a CPU.",
+      profissional: "Dificil: so ~20% de vitorias contra a CPU.",
+      craque: "Brutal: ~7,5% de vitorias contra a CPU. Boa sorte."
+    };
 
     // total de times do torneio: no mata-mata e o tamanho do chaveamento; nos grupos e o "times".
     function teamCount(c) {
@@ -4646,6 +4683,13 @@
       config += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
       config += cfgSegRow("Tempo por jogada", "turnTime", [{ v: 20, l: "20s" }, { v: 30, l: "30s" }, { v: 45, l: "45s" }, { v: 60, l: "60s" }], c.turnTime);
       config += cfgSegRow("Transmissao", "playback", [{ v: "host", l: "Anfitriao controla" }, { v: "livre", l: "Cada um no seu ritmo" }], c.playback);
+      config += cfgSegRow("Dificuldade", "difficulty", [
+        { v: "perna", l: "Perna de pau" }, { v: "peladeiro", l: "Peladeiro" },
+        { v: "profissional", l: "Profissional" }, { v: "craque", l: "Craque" }
+      ], c.difficulty);
+      config += `<div class="sync-line">${DIFFICULTY_HINT[c.difficulty]}</div>`;
+      config += cfgSegRow("Notas", "notas", [{ v: "classico", l: "Classico" }, { v: "almanaque", l: "Almanaque" }], c.notas);
+      if (c.notas === "almanaque") config += `<div class="sync-line">Almanaque: as notas dos jogadores ficam ESCONDIDAS durante o draft.</div>`;
       config += cfgSegRow("Espalhar humanos", "spread", [{ v: "on", l: "Ligado" }, { v: "off", l: "Desligado" }], c.spread ? "on" : "off");
       config += `<div class="sync-line">${c.spread ? "Humanos ficam o mais separados possivel." : "Distribuicao aleatoria dos humanos."}</div>`;
       return roomPanelHtml("Campeonato", "Voce e o anfitriao", campeonato, "room-campeonato-panel")
@@ -4667,6 +4711,8 @@
       rows.push(["Experiencia", c.experience === "interativo" ? "Interativo" : "Assistir"]);
       rows.push(["Tempo/jogada", c.turnTime + "s"]);
       rows.push(["Transmissao", c.playback === "livre" ? "Cada um no seu ritmo" : "Anfitriao controla"]);
+      rows.push(["Dificuldade", DIFFICULTY_LABEL[c.difficulty]]);
+      rows.push(["Notas", c.notas === "almanaque" ? "Almanaque (escondidas)" : "Classico"]);
       rows.push(["Espalhar humanos", c.spread ? "Ligado" : "Desligado"]);
       const body = `<div class="cfg-readonly">`
         + rows.map(r => `<div class="cfg-ro-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("")
@@ -5735,7 +5781,7 @@
           host: player.id,
           name: player.roomName || player.apelido || "Sala",
           createdAt: serverTimestamp(),
-          config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true, turnTime: 30, playback: "host" },
+          config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true, turnTime: 30, playback: "host", difficulty: "peladeiro", notas: "classico" },
           players: { [player.id]: { apelido: player.apelido, ready: false, connected: true } }
         });
         attachPresence(code, player.id);
