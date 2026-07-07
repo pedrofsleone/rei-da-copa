@@ -290,12 +290,28 @@
       color: var(--ink);
     }
 
-    /* A Central da Partida continua um card escuro (campo); texto fica claro nela */
+    /* A Central da Partida continua um card escuro (campo); titulo/placar claros */
     #tourneyWaitView .bc-central,
-    #tourneyWaitView .bc-central .event-text,
-    #tourneyWaitView .bc-central .event-minute,
     #tourneyWaitView .bc-central .sync-line {
       color: oklch(0.985 0 0);
+    }
+
+    /* Lances: pilulas brancas com texto ESCURO (estilo poster), sem caixa preta */
+    #tourneyWaitView .bc-timeline {
+      background: oklch(1 0 0 / 0.16);
+    }
+
+    #tourneyWaitView .bc-central .event {
+      background: oklch(0.99 0 0);
+      border: 1px solid oklch(0.14 0 0);
+    }
+
+    #tourneyWaitView .bc-central .event-text {
+      color: oklch(0.14 0 0);
+    }
+
+    #tourneyWaitView .bc-central .event-minute {
+      color: oklch(0.45 0.14 152);
     }
 
     #tourneyWaitView .match-row.is-mine,
@@ -3586,7 +3602,7 @@
     }
 
     // ===== Transmissao progressiva do torneio (sala sincronizada; host dirige) =====
-    let broadcastTimer = null, bcOpenedAt = 0;
+    let broadcastTimer = null, bcOpenedAt = 0, bcLastEvAt = 0;
 
     function broadcastOrder(tournament) { return tournament ? tournamentMatches(tournament) : []; }
     function orderIndexOf(order, match) { return order.findIndex(m => m.id === match.id); }
@@ -3646,10 +3662,44 @@
         window.RC_NET.setBroadcast(code, { openedIndex: b.index, evIndex: 0, events: buildBroadcastEvents(match, room.teams || {}) });
         return;
       }
-      if (b.auto) {
-        if ((b.evIndex || 0) < (b.events || []).length) window.RC_NET.setBroadcast(code, { evIndex: (b.evIndex || 0) + 1 });
-        else hostBroadcastNext(room); // fim do jogo humano no auto -> proximo
+      const atEnd = (b.evIndex || 0) >= (b.events || []).length;
+      if (atEnd) {
+        // Fim do jogo: o Auto PARA aqui (nada de atropelar o campeonato).
+        if (b.auto) { window.RC_NET.setBroadcast(code, { auto: false }); return; }
+        // So avanca quando TODOS os players ainda vivos confirmarem "Visto".
+        const need = bcHumansNeedingSeen(order, b, room.teams || {}, room);
+        const seen = b.seen || {};
+        if (need.every(id => seen[id] === (b.index || 0))) hostBroadcastNext(room);
+        return;
       }
+      // Auto: revela 1 lance por vez, em ritmo de leitura (o drive tambem roda a
+      // cada update do banco, entao o gate de tempo evita a cascata instantanea).
+      if (b.auto && Date.now() - bcLastEvAt > 1500) {
+        bcLastEvAt = Date.now();
+        window.RC_NET.setBroadcast(code, { evIndex: (b.evIndex || 0) + 1 });
+      }
+    }
+
+    // Players "vivos" que precisam confirmar o jogo atual: humanos conectados que
+    // ainda tem partida agora ou no futuro. Quem ja caiu do campeonato sai da lista.
+    function bcHumansNeedingSeen(order, b, teams, room) {
+      const idx = b.index || 0;
+      const players = (room && room.players) || {};
+      return Object.keys(teams).filter(id => {
+        const t = teams[id];
+        if (!t || !t.human) return false;
+        if (players[id] && players[id].connected === false) return false;
+        for (let i = idx; i < order.length; i++) {
+          const m = order[i];
+          if (m.home === id || m.away === id) return true;
+        }
+        return false;
+      });
+    }
+
+    function bcVisto() {
+      const r = tdRoom(); const b = r && r.broadcast; if (!b) return;
+      window.RC_NET.setBroadcast(state.net.code, { ["seen/" + clientId]: b.index || 0 });
     }
 
     function hostBroadcastNext(room) {
@@ -4175,11 +4225,21 @@
         ? (evShown.length ? evShown.map(e => `<div class="event"><span class="event-minute">${e.minute}'</span><span class="event-text">${escapeHtml(e.text)}</span></div>`).join("") : `<div class="empty-state">A bola vai rolar...</div>`)
         : `<div class="empty-state">Jogo entre CPUs — revelando rapido...</div>`;
       let controls = "";
-      if (isHost && human) {
+      const needIds = human ? bcHumansNeedingSeen(order, b, teams, room) : [];
+      const seenMap = b.seen || {};
+      const seenCount = needIds.filter(id => seenMap[id] === (b.index || 0)).length;
+      if (human && atEnd) {
+        // Fim da partida: cada player vivo confirma que viu; o proximo jogo so abre com todos.
+        const iNeed = needIds.includes(clientId) && seenMap[clientId] !== (b.index || 0);
+        controls = (iNeed
+          ? `<div class="bc-controls"><button class="primary-action" id="bcVistoBtn" type="button">✓ Visto — pode seguir</button></div>`
+          : "")
+          + `<div class="sync-line">${seenCount}/${needIds.length} confirmaram — o proximo jogo abre quando todos virem este.</div>`;
+      } else if (isHost && human) {
         controls = `<div class="bc-controls">
           <button class="secondary-action" id="bcAutoBtn" type="button">${b.auto ? "Pausar" : "Auto"}</button>
           <button class="tertiary-action" id="bcPularBtn" type="button">Pular</button>
-          <button class="primary-action" id="bcMainBtn" type="button">${atEnd ? "Proximo" : "Lance"}</button>
+          <button class="primary-action" id="bcMainBtn" type="button">Lance</button>
         </div>`;
       } else if (isHost) {
         controls = `<div class="bc-controls"><button class="primary-action" id="bcMainBtn" type="button">Proximo</button></div>`;
@@ -4209,6 +4269,7 @@
       };
       const auto = document.getElementById("bcAutoBtn"); if (auto) auto.onclick = bcAuto;
       const pular = document.getElementById("bcPularBtn"); if (pular) pular.onclick = bcPular;
+      const visto = document.getElementById("bcVistoBtn"); if (visto) visto.onclick = bcVisto;
     }
 
     function renderGroups(groups, teams, mine, order, b) {
