@@ -319,6 +319,70 @@
       box-shadow: 2px 2px 0 oklch(0.14 0 0);
     }
 
+    /* Campo de pressao (momentum cenografico) dentro da Central da Partida */
+    .bc-pressure { display: grid; }
+
+    .bc-pitch {
+      position: relative;
+      height: 96px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: oklch(0.30 0.09 152);
+      border: 1px solid oklch(0.99 0 0 / 0.25);
+    }
+
+    .bc-wave {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: oklch(0.42 0.12 152);
+      transition: width 0.9s ease;
+    }
+
+    .bc-mid {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: oklch(0.99 0 0 / 0.35);
+    }
+
+    .bc-pitch svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .bc-possess {
+      position: absolute;
+      top: 50%;
+      right: 5%;
+      transform: translateY(-50%);
+      display: grid;
+      gap: 1px;
+      padding-left: 8px;
+      border-left: 3px solid oklch(0.62 0.16 250);
+      text-align: left;
+    }
+
+    .bc-possess.is-away {
+      right: auto;
+      left: 5%;
+    }
+
+    .bc-possess b {
+      font-size: 12px;
+      font-weight: 950;
+      color: oklch(0.99 0 0);
+    }
+
+    .bc-possess span {
+      font-size: 11px;
+      font-weight: 800;
+      color: oklch(0.92 0 0 / 0.9);
+    }
+
     #tourneyWaitView .match-row.is-mine,
     #tourneyWaitView .standing-row.is-qualified {
       background: oklch(0.93 0.06 150);
@@ -3608,6 +3672,76 @@
 
     // ===== Transmissao progressiva do torneio (sala sincronizada; host dirige) =====
     let broadcastTimer = null, bcOpenedAt = 0, bcLastEvAt = 0;
+    let bcEvKey = "", bcEvChangedAt = 0; // cronometro cosmetico entre lances
+
+    // Ritmo do Auto: a partida inteira dura ~1 minuto (gap por lance, 6s a 20s)
+    function bcAutoGap(events) {
+      const n = Math.max((events || []).length, 1);
+      return clamp(Math.round(60000 / n), 6000, 20000);
+    }
+
+    // PRNG com semente: todos os aparelhos geram a MESMA pressao/posse por minuto
+    function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; }
+    function seededRand(seed) {
+      let t = seed >>> 0;
+      return function () {
+        t += 0x6D2B79F5;
+        let r = Math.imul(t ^ (t >>> 15), 1 | t);
+        r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+        return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    // Minuto simulado: interpola do lance revelado ate o proximo, no ritmo do Auto
+    function bcSimMinute(b) {
+      const evs = b.events || [];
+      const i = b.evIndex || 0;
+      if (i >= evs.length) return 90;
+      const prevMin = i > 0 ? evs[i - 1].minute : 0;
+      const nextMin = evs[i].minute;
+      const t = clamp((Date.now() - bcEvChangedAt) / bcAutoGap(evs), 0, 1);
+      return Math.min(nextMin, Math.round(prevMin + (nextMin - prevMin) * t));
+    }
+
+    // ---- modo "Cada um no seu ritmo" (config playback: "livre") ----
+    function bcIsLivre(room) { return cfgOr(room && room.config).playback === "livre"; }
+
+    function localBcOr(room) {
+      if (!state.localBc) state.localBc = { index: 0, openedIndex: -1, evIndex: 0, events: [], auto: false, done: false };
+      return state.localBc;
+    }
+
+    // Driver LOCAL: mesmas regras do host, mas so neste aparelho (sem trava "todos viram")
+    function driveLocalBc(room) {
+      if (!room || room.status !== "running" || !room.tournament) return;
+      const b = localBcOr(room);
+      if (b.done) return;
+      const order = broadcastOrder(room.tournament);
+      if ((b.index || 0) >= order.length) { b.done = true; return; }
+      const match = order[b.index];
+      if (!bcMatchHasHuman(match, room.teams || {})) {
+        let next = b.index;
+        while (next < order.length && !bcMatchHasHuman(order[next], room.teams || {})) next++;
+        if (next >= order.length) { b.index = next; b.done = true; } else b.index = next;
+        return;
+      }
+      if (b.openedIndex !== b.index) {
+        b.openedIndex = b.index; b.evIndex = 0;
+        b.events = buildBroadcastEvents(match, room.teams || {});
+        return;
+      }
+      const atEnd = (b.evIndex || 0) >= (b.events || []).length;
+      if (atEnd) { if (b.auto) b.auto = false; return; } // fim: para e espera "Proxima partida"
+      if (b.auto && Date.now() - bcLastEvAt > bcAutoGap(b.events)) {
+        bcLastEvAt = Date.now();
+        b.evIndex = (b.evIndex || 0) + 1;
+      }
+    }
+
+    // O "broadcast" que este aparelho ve: compartilhado (host controla) ou local (livre)
+    function bcResolved(room) {
+      return bcIsLivre(room) ? localBcOr(room) : (room.broadcast || { index: 0, evIndex: 0, events: [], done: false });
+    }
 
     function broadcastOrder(tournament) { return tournament ? tournamentMatches(tournament) : []; }
     function orderIndexOf(order, match) { return order.findIndex(m => m.id === match.id); }
@@ -3647,6 +3781,7 @@
     // ---- host: dirige a transmissao (init, abre jogo, avanca CPU, auto) ----
     function hostBroadcastDrive(room) {
       if (!isRoomHost(room) || room.status !== "running" || !room.tournament) return;
+      if (bcIsLivre(room)) return; // modo livre: cada aparelho dirige o proprio playback
       const code = state.net.code;
       let b = room.broadcast;
       if (!b) { window.RC_NET.patch(code, { broadcast: { index: 0, openedIndex: -1, evIndex: 0, events: [], auto: false, done: false } }); return; }
@@ -3677,9 +3812,9 @@
         if (need.every(id => seen[id] === (b.index || 0))) hostBroadcastNext(room);
         return;
       }
-      // Auto: revela 1 lance por vez, em ritmo de leitura (o drive tambem roda a
-      // cada update do banco, entao o gate de tempo evita a cascata instantanea).
-      if (b.auto && Date.now() - bcLastEvAt > 1500) {
+      // Auto: revela 1 lance por vez, no ritmo de ~1 minuto por partida (o drive
+      // tambem roda a cada update do banco, entao o gate evita a cascata).
+      if (b.auto && Date.now() - bcLastEvAt > bcAutoGap(b.events)) {
         bcLastEvAt = Date.now();
         window.RC_NET.setBroadcast(code, { evIndex: (b.evIndex || 0) + 1 });
       }
@@ -3719,15 +3854,40 @@
     function broadcastTick() {
       if (state.screen !== "tourneyWait") { stopBroadcastTimer(); return; }
       const room = tdRoom();
+      if (room && bcIsLivre(room)) { driveLocalBc(room); render(); return; } // cada um no seu ritmo
       if (room && isRoomHost(room)) { hostBroadcastDrive(room); render(); }
       else render(); // guests: so re-renderiza pro cronometro/estado
     }
 
-    // ---- controles do host (so aparecem pra ele, em jogo com humano) ----
-    function bcLance() { const r = tdRoom(); const b = r && r.broadcast; if (!b) return; window.RC_NET.setBroadcast(state.net.code, { evIndex: Math.min((b.evIndex || 0) + 1, (b.events || []).length), auto: false }); }
-    function bcAuto() { const r = tdRoom(); const b = r && r.broadcast; if (!b) return; window.RC_NET.setBroadcast(state.net.code, { auto: !b.auto }); }
-    function bcPular() { const r = tdRoom(); const b = r && r.broadcast; if (!b) return; window.RC_NET.setBroadcast(state.net.code, { evIndex: (b.events || []).length, auto: false }); }
-    function bcProximo() { const r = tdRoom(); if (r) hostBroadcastNext(r); }
+    // ---- controles do playback (modo host: so anfitriao; modo livre: cada um o seu) ----
+    function bcLance() {
+      const r = tdRoom(); if (!r) return;
+      if (bcIsLivre(r)) { const b = localBcOr(r); b.evIndex = Math.min((b.evIndex || 0) + 1, (b.events || []).length); b.auto = false; render(); return; }
+      const b = r.broadcast; if (!b) return;
+      window.RC_NET.setBroadcast(state.net.code, { evIndex: Math.min((b.evIndex || 0) + 1, (b.events || []).length), auto: false });
+    }
+    function bcAuto() {
+      const r = tdRoom(); if (!r) return;
+      if (bcIsLivre(r)) { const b = localBcOr(r); b.auto = !b.auto; render(); return; }
+      const b = r.broadcast; if (!b) return;
+      window.RC_NET.setBroadcast(state.net.code, { auto: !b.auto });
+    }
+    function bcPular() {
+      const r = tdRoom(); if (!r) return;
+      if (bcIsLivre(r)) { const b = localBcOr(r); b.evIndex = (b.events || []).length; b.auto = false; render(); return; }
+      const b = r.broadcast; if (!b) return;
+      window.RC_NET.setBroadcast(state.net.code, { evIndex: (b.events || []).length, auto: false });
+    }
+    function bcProximo() {
+      const r = tdRoom(); if (!r) return;
+      if (bcIsLivre(r)) {
+        const b = localBcOr(r); const order = broadcastOrder(r.tournament);
+        const next = (b.index || 0) + 1;
+        if (next >= order.length) { b.index = next; b.done = true; } else b.index = next;
+        render(); return;
+      }
+      hostBroadcastNext(r);
+    }
 
     // ---- cartas ----
     function tdUseBloqueio(playerId) {
@@ -4191,7 +4351,7 @@
 
     function renderTournamentView(room, tournament, teams) {
       const order = broadcastOrder(tournament);
-      const b = room.broadcast || { index: 0, evIndex: 0, events: [], done: false };
+      const b = bcResolved(room); // compartilhado (host) ou local (cada um no seu ritmo)
       const mine = teams[clientId] ? clientId : null;
       const total = tournament.totalTeams || Object.keys(teams).length;
       const revealed = b.done ? order.length : (b.index || 0);
@@ -4224,7 +4384,13 @@
       const score = human ? bcScoreAt(b.events, b.evIndex || 0) : { h: match.hg, a: match.ag };
       const atEnd = human && (b.evIndex || 0) >= (b.events || []).length;
       const isHost = isRoomHost(room);
+      const livre = bcIsLivre(room);
       const mineMatch = match.home === mine || match.away === mine;
+      // cronometro cosmetico: marca quando o lance revelado mudou
+      const evKey = (b.index || 0) + ":" + (b.evIndex || 0);
+      if (evKey !== bcEvKey) { bcEvKey = evKey; bcEvChangedAt = Date.now(); }
+      const minute = atEnd ? 90 : bcSimMinute(b);
+      const pressure = human && !atEnd ? renderPressure(match, home, away, minute, b.events || [], b.evIndex || 0) : "";
       // Lance mais NOVO sempre no topo (a caixinha tem rolagem e o re-render
       // periodico voltava pro comeco, escondendo os lances novos).
       const evShown = human ? (b.events || []).slice(0, b.evIndex || 0) : [];
@@ -4235,7 +4401,16 @@
       const needIds = human ? bcHumansNeedingSeen(order, b, teams, room) : [];
       const seenMap = b.seen || {};
       const seenCount = needIds.filter(id => seenMap[id] === (b.index || 0)).length;
-      if (human && atEnd) {
+      if (livre && human) {
+        // Modo "cada um no seu ritmo": todo mundo tem os proprios controles, sem espera
+        controls = atEnd
+          ? `<div class="bc-controls"><button class="primary-action" id="bcNextBtn" type="button">Proxima partida →</button></div>`
+          : `<div class="bc-controls">
+              <button class="secondary-action" id="bcAutoBtn" type="button">${b.auto ? "Pausar" : "Auto"}</button>
+              <button class="tertiary-action" id="bcPularBtn" type="button">Pular</button>
+              <button class="primary-action" id="bcMainBtn" type="button">Lance</button>
+            </div>`;
+      } else if (human && atEnd) {
         // Fim da partida: cada player vivo confirma que viu; o proximo jogo so abre com todos.
         const iNeed = needIds.includes(clientId) && seenMap[clientId] !== (b.index || 0);
         controls = (iNeed
@@ -4254,21 +4429,62 @@
         controls = `<div class="sync-line">O anfitriao controla a transmissao.</div>`;
       }
       return `<section class="bc-central ${mineMatch ? "is-mine" : ""}">
-        <div class="bc-live">${human ? "AO VIVO" : "RAPIDO"} · ${escapeHtml(match.stage)}</div>
+        <div class="bc-live">${human ? (atEnd ? "FIM DE JOGO" : `AO VIVO · ${minute}'`) : "RAPIDO"} · ${escapeHtml(match.stage)}</div>
         <div class="bc-score">
           <span class="bc-team">${escapeHtml(shortTeamName(home))}</span>
           <strong class="bc-goals">${score.h}-${score.a}</strong>
           <span class="bc-team">${escapeHtml(shortTeamName(away))}</span>
         </div>
+        ${pressure}
         <div class="bc-timeline">${timeline}</div>
         ${controls}
       </section>`;
     }
 
+    // Campo de PRESSAO em "tempo real" (cenografico, estilo momentum): a onda
+    // avanca pro lado que pressiona, com posse de bola nominal e passes pontilhados.
+    // Semente = id do jogo + minuto => todos os aparelhos veem o mesmo.
+    function renderPressure(match, home, away, minute, evs, evIndex) {
+      const rnd = seededRand(hashStr(String(match.id || "m")) * 97 + minute * 13);
+      // drama coerente: nos ~8 min antes de um gol, a pressao pende pro lado dele
+      let bias = 0.5;
+      const next = evs.slice(evIndex).find(e => e.side === "home" || e.side === "away");
+      if (next && next.minute - minute <= 8) bias = next.side === "home" ? 0.74 : 0.26;
+      const momentum = clamp(bias + (rnd() - 0.5) * 0.34, 0.12, 0.88);
+      const side = momentum >= 0.5 ? "home" : "away";
+      const team = side === "home" ? home : away;
+      const roster = Object.values(team.lineup || {}).filter(Boolean);
+      const holder = roster.length ? roster[Math.floor(rnd() * roster.length)] : null;
+      // passes: pontinhos avancando pro lado atacado
+      const pts = [];
+      let x = side === "home" ? 34 + rnd() * 18 : 66 - rnd() * 18;
+      let y = 22 + rnd() * 56;
+      for (let k = 0; k < 4; k++) {
+        pts.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10]);
+        x = clamp(x + (side === "home" ? 1 : -1) * (5 + rnd() * 13), 6, 94);
+        y = clamp(y + (rnd() - 0.5) * 30, 12, 88);
+      }
+      const last = pts[pts.length - 1];
+      return `<div class="bc-pressure">
+        <div class="bc-pitch">
+          <div class="bc-wave" style="width:${Math.round(momentum * 100)}%"></div>
+          <div class="bc-mid"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+            <polyline points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="oklch(0.99 0 0 / 0.8)" stroke-width="1.4"/>
+            ${pts.slice(0, -1).map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="1.9" fill="oklch(0.99 0 0 / 0.75)"/>`).join("")}
+            <circle cx="${last[0]}" cy="${last[1]}" r="3.2" fill="oklch(0.99 0 0)" stroke="oklch(0.62 0.16 250)" stroke-width="1.6"/>
+          </svg>
+          <div class="bc-possess ${side === "away" ? "is-away" : ""}">
+            <b>Posse de bola</b><span>${holder ? escapeHtml(holder.name) : escapeHtml(shortTeamName(team))}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+
     function wireBroadcastControls(room, order) {
       const main = document.getElementById("bcMainBtn");
       if (main) main.onclick = () => {
-        const r = tdRoom(); const bb = (r && r.broadcast) || {};
+        const r = tdRoom(); const bb = r ? bcResolved(r) : {};
         const match = order[bb.index || 0];
         const human = match && bcMatchHasHuman(match, (r && r.teams) || {});
         if (human && (bb.evIndex || 0) < (bb.events || []).length) bcLance();
@@ -4277,6 +4493,7 @@
       const auto = document.getElementById("bcAutoBtn"); if (auto) auto.onclick = bcAuto;
       const pular = document.getElementById("bcPularBtn"); if (pular) pular.onclick = bcPular;
       const visto = document.getElementById("bcVistoBtn"); if (visto) visto.onclick = bcVisto;
+      const next = document.getElementById("bcNextBtn"); if (next) next.onclick = bcProximo;
     }
 
     function renderGroups(groups, teams, mine, order, b) {
@@ -4384,7 +4601,8 @@
         fill: cfg.fill || "cpu",
         experience: cfg.experience || "assistir",
         spread: cfg.spread !== false,
-        turnTime: cfg.turnTime || 30
+        turnTime: cfg.turnTime || 30,
+        playback: cfg.playback === "livre" ? "livre" : "host"
       };
     }
 
@@ -4427,6 +4645,7 @@
       let config = cfgSegRow("Vagas", "fill", [{ v: "cpu", l: "Completar com CPU" }, { v: "humanos", l: "So humanos" }], c.fill);
       config += cfgSegRow("Experiencia", "experience", [{ v: "assistir", l: "Assistir" }, { v: "interativo", l: "Interativo" }], c.experience);
       config += cfgSegRow("Tempo por jogada", "turnTime", [{ v: 20, l: "20s" }, { v: 30, l: "30s" }, { v: 45, l: "45s" }, { v: 60, l: "60s" }], c.turnTime);
+      config += cfgSegRow("Transmissao", "playback", [{ v: "host", l: "Anfitriao controla" }, { v: "livre", l: "Cada um no seu ritmo" }], c.playback);
       config += cfgSegRow("Espalhar humanos", "spread", [{ v: "on", l: "Ligado" }, { v: "off", l: "Desligado" }], c.spread ? "on" : "off");
       config += `<div class="sync-line">${c.spread ? "Humanos ficam o mais separados possivel." : "Distribuicao aleatoria dos humanos."}</div>`;
       return roomPanelHtml("Campeonato", "Voce e o anfitriao", campeonato, "room-campeonato-panel")
@@ -4447,6 +4666,7 @@
       rows.push(["Vagas", c.fill === "humanos" ? "So humanos" : "Completar com CPU"]);
       rows.push(["Experiencia", c.experience === "interativo" ? "Interativo" : "Assistir"]);
       rows.push(["Tempo/jogada", c.turnTime + "s"]);
+      rows.push(["Transmissao", c.playback === "livre" ? "Cada um no seu ritmo" : "Anfitriao controla"]);
       rows.push(["Espalhar humanos", c.spread ? "Ligado" : "Desligado"]);
       const body = `<div class="cfg-readonly">`
         + rows.map(r => `<div class="cfg-ro-row"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("")
@@ -5515,7 +5735,7 @@
           host: player.id,
           name: player.roomName || player.apelido || "Sala",
           createdAt: serverTimestamp(),
-          config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true, turnTime: 30 },
+          config: { format: "grupos", knockoutPhase: 16, size: 16, groupSize: 4, advance: 2, rounds: 3, fill: "cpu", experience: "assistir", spread: true, turnTime: 30, playback: "host" },
           players: { [player.id]: { apelido: player.apelido, ready: false, connected: true } }
         });
         attachPresence(code, player.id);
